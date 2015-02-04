@@ -132,6 +132,7 @@ PRODUCT_PACKAGES += \
 # Configuration scripts
 PRODUCT_PACKAGES += \
     init.qcom.bt.sh \
+    init.qti.ims.sh \
     init.link_ril_db.sh
 
 # Ramdisk
