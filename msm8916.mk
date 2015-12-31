@@ -160,5 +160,10 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     lights.msm8916
 
+# Misc
+PRODUCT_PACKAGES += \
+    libstlport \
+    libboringssl-compat
+
 # Common Qualcomm
 $(call inherit-product, device/samsung/qcom-common/qcom-common.mk)
