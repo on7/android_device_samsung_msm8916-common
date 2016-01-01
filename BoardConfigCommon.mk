@@ -140,11 +140,5 @@ include device/qcom/sepolicy/sepolicy.mk
 BOARD_SEPOLICY_DIRS += \
     device/samsung/msm8916-common/sepolicy
 
-BOARD_SEPOLICY_UNION += \
-    vold.te \
-    file.te \
-    wcnss_service.te \
-    file_contexts
-
 # Workaround to avoid issues with legacy liblights on QCOM platforms
 TARGET_PROVIDES_LIBLIGHT := true
