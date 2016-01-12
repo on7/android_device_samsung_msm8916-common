@@ -93,6 +93,9 @@ TARGET_USES_NEW_ION_API :=true
 TARGET_USES_QCOM_BSP := true
 HAVE_SYNAPTICS_I2C_RMI4_FW_UPGRADE := true
 
+# DataServices
+USE_DEVICE_SPECIFIC_DATASERVICES := true
+
 # Added to indicate that protobuf-c is supported in this build
 PROTOBUF_SUPPORTED := true
 
