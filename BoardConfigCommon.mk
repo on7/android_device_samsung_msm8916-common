@@ -60,7 +60,8 @@ MALLOC_IMPL := dlmalloc
 
 # Audio
 BOARD_USES_ALSA_AUDIO := true
-AUDIO_FEATURE_LOW_LATENCY_PRIMARY := true
+AUDIO_FEATURE_ENABLED_KPI_OPTIMIZE := true
+USE_CUSTOM_AUDIO_POLICY := 1
 
 # Display
 # Shader cache config options
