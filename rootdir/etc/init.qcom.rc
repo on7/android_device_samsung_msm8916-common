@@ -148,6 +148,11 @@ on boot
     write /proc/sys/net/core/rmem_max  8388608
     write /proc/sys/net/core/wmem_max  8388608
 
+    # Adjust socket buffer to enlarge TCP receive window for high bandwidth
+    # but only if ro.data.large_tcp_window_size property is set.
+    on property:ro.data.large_tcp_window_size=true
+    write /proc/sys/net/ipv4/tcp_adv_win_scale  2
+
     # To allow interfaces to get v6 address when tethering is enabled
     write /proc/sys/net/ipv6/conf/rmnet0/accept_ra 2
     write /proc/sys/net/ipv6/conf/rmnet1/accept_ra 2
@@ -526,7 +531,7 @@ on property:hw.fm.init=0
 on property:hw.fm.init=1
     write /sys/module/radio_iris_transport/parameters/fmsmd_set 1
 
-service irsc_util /system/bin/logwrapper /system/bin/irsc_util "/etc/sec_config"
+service irsc_util /system/bin/irsc_util "/etc/sec_config"
     class main
     user root
     oneshot
@@ -575,11 +580,6 @@ service qmiproxy /system/bin/qmiproxy
     user radio
     group radio qcom_diag
     disabled
-
-# Adjust socket buffer to enlarge TCP receive window for high bandwidth
-# but only if ro.data.large_tcp_window_size property is set.
-on property:ro.data.large_tcp_window_size=true
-    write /proc/sys/net/ipv4/tcp_adv_win_scale  2
 
 service btwlancoex /system/bin/sh /system/etc/init.qcom.coex.sh
     class late_start
@@ -716,10 +716,6 @@ service hostapd /system/bin/hostapd -dd /data/misc/wifi/hostapd.conf
     oneshot
     disabled
 
-on property:ro.data.large_tcp_window_size=true
-    # Adjust socket buffer to enlarge TCP receive window for high bandwidth (e.g. DO-RevB)
-    write /proc/sys/net/ipv4/tcp_adv_win_scale  2
-
 service qcamerasvr /system/bin/mm-qcamera-daemon
     class late_start
     user camera
@@ -767,7 +763,7 @@ service qseecomd /system/bin/qseecomd
    user root
    group root
 
-service perfd /system/bin/perfd
+service perfd /vendor/bin/perfd
    class main
    user root
    group root
