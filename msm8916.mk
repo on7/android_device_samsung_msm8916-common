@@ -104,7 +104,8 @@ PRODUCT_PACKAGES += \
 # Camera
 PRODUCT_PACKAGES += \
     camera.msm8916 \
-    libxml2
+    libxml2 \
+    Snap
 
 # Power
 PRODUCT_PACKAGES += \
