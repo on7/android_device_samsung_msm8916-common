@@ -17,7 +17,10 @@
 -include device/samsung/qcom-common/BoardConfigCommon.mk 
 
 # inherit from the proprietary version
--include vendor/samsung/fortuna-common/BoardConfigVendor.mk
+-include vendor/samsung/fortunaxx-common/BoardConfigVendor.mk
 
 # PATH
-LOCAL_PATH := device/samsung/fortuna-common
+LOCAL_PATH := device/samsung/fortunaxx-common
+
+
+
