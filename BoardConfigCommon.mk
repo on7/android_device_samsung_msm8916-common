@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# BoardConfig.mk
-LOCAL_PATH 					:= device/samsung/fortuna-common
-
 # Inherit from samsung qcom-common
 -include device/samsung/qcom-common/BoardConfigCommon.mk 
 
 # inherit from the proprietary version
 -include vendor/samsung/fortuna-common/BoardConfigVendor.mk
+
+# PATH
+LOCAL_PATH := device/samsung/fortuna-common
