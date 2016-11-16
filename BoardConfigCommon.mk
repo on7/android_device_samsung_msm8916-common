@@ -107,7 +107,7 @@ PROTOBUF_SUPPORTED                  := true
 EXTENDED_FONT_FOOTPRINT             := true
 
 # malloc implementation
-MALLOC_IMPL                         := jemalloc
+MALLOC_IMPL                         := dlmalloc
 
 # Audio
 TARGET_QCOM_AUDIO_VARIANT            := caf
