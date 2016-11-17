@@ -167,14 +167,13 @@ static char *camera_fixup_setparams(struct camera_device *device, const char *se
             params.set(android::CameraParameters::KEY_ISO_MODE, "800");
     }
 	
-
-    // fix params here
     int video_width, video_height;
     params.getPreviewSize(&video_width, &video_height);
-    if(video_width*video_height <= 960*540){
-	params.set("preview-format", "yuv420p");
+    if(video_width*video_height == 720*540){
+		params.set("preview-size", "960x540");
+		params.set("jpeg-thumbnail-width", "512");
+		params.set("jpeg-thumbnail-height", "288");   
     }
-	
 	
     android::String8 strParams = params.flatten();
 
