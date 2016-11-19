@@ -699,7 +699,9 @@
         <ctl name="DEC1 Volume" value="89" />
         <ctl name="ADC1 Volume" value="2" />
     </path>
- <!--
+	
+<!-- Video record on cm use main-mic -->	
+<!--
     <path name="rec-sub-mic">
         <path name="sub-mic" />
         <ctl name="DEC1 Volume" value="82" />
