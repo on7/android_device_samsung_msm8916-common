@@ -17,6 +17,7 @@ SAMSUNG_TARGETS := fortuna3g fortunave3g
  
 ifneq ($(filter $(SAMSUNG_TARGETS),$(TARGET_DEVICE)),)
 include $(all-subdir-makefiles)
+include $(CLEAR_VARS)
 
 # CMN
 CMN_IMAGES := \

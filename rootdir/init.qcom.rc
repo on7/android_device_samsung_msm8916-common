@@ -28,7 +28,7 @@
 import init.qcom.usb.rc
 
 on early-init
-	mkdir /firmware 0771 system system
+    mkdir /firmware 0771 system system
     mkdir /firmware-modem 0771 system system
     #mkdir /system 0777 root root
     symlink /data/tombstones /tombstones
@@ -81,9 +81,9 @@ on early-boot
     write /sys/module/peripheral_loader/parameters/proxy_timeout_ms ${persist.sys.pil_proxy_timeout}
     write /sys/kernel/boot_adsp/boot 1
     setprop qcom.audio.init complete
-	
+
 on boot
-	start rmt_storage
+    start rmt_storage
     insmod /system/lib/modules/adsprpc.ko
     # access permission for secure touch
     chmod 0660 /sys/devices/soc.0/78b9000.i2c/i2c-5/5-0020/secure_touch_enable
@@ -150,12 +150,10 @@ on boot
 #   ReadMin, ReadInitial, ReadMax, WriteMin, WriteInitial, WriteMax,
     setprop net.tcp.buffersize.wifi    524288,2097152,4194304,262144,524288,1048576
 
-
     setprop ro.telephony.call_ring.multiple false
 
     #Remove SUID bit for iproute2 ip tool
     chmod 0755 /system/bin/ip
-
 
     chmod 0444 /sys/devices/platform/msm_hsusb/gadget/usb_state
 
@@ -414,7 +412,7 @@ on boot
     chown system radio /sys/class/sensors/sensor_dev/flush
 
 # Permissions for Charging
-	mkdir /efs/Battery 0775 radio system
+    mkdir /efs/Battery 0775 radio system
     chown system radio /sys/class/power_supply/battery/batt_reset_soc
     chown system radio /sys/class/power_supply/battery/update
     chown system radio /sys/class/power_supply/battery/factory_mode
@@ -438,12 +436,8 @@ on boot
     chmod 0664 /sys/class/power_supply/ps/status
     chown system radio /sys/class/power_supply/battery/batt_temp_table
 	
-	# Adaptive LMK
-	#write /sys/module/lowmemorykiller/parameters/enable_adaptive_lmk 1
-    #write /sys/module/lowmemorykiller/parameters/vmpressure_file_min 53059
-	
 on fs
-	mount_all fstab.qcom
+    mount_all fstab.qcom
 
     chown system radio /efs
     chmod 0771 /efs
@@ -725,18 +719,12 @@ on property:bluetooth.hciattach=true
 on property:bluetooth.hciattach=false
     setprop bluetooth.status off
 
-service qmiproxy /system/bin/qmiproxy
-    class main
-    user radio
-    group radio qcom_diag
-    disabled
-
 # QMUX must be in multiple groups to support external process connections
 service qmuxd /system/bin/qmuxd
     class main
     user root
     group radio audio bluetooth gps qcom_diag
-
+		
 service netmgrd /system/bin/netmgrd
     class main
 	
@@ -964,7 +952,7 @@ service charger /charger
     class charger
     group log
     seclabel u:r:healthd:s0
-	
+		
 on charger
     chown root system /sys/class/power_supply/bms/current_now
     chown root system /sys/class/power_supply/bms/voltage_ocv
@@ -973,4 +961,3 @@ on charger
     #start vm_bms
     load_all_props
     start qcom-post-boot
-
