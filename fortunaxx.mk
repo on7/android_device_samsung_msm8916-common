@@ -28,30 +28,30 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.bluetooth.xml:system/etc/permissions/android.hardware.bluetooth.xml \
     frameworks/native/data/etc/android.hardware.bluetooth_le.xml:system/etc/permissions/android.hardware.bluetooth_le.xml \
     packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:system/etc/permissions/android.software.live_wallpaper.xml
-		
+
 # Init files
 PRODUCT_COPY_FILES += \
-	$(LOCAL_PATH)/rootdir/fstab.qcom:root/fstab.qcom \
-	$(LOCAL_PATH)/rootdir/init.qcom.rc:root/init.qcom.rc \
-	$(LOCAL_PATH)/rootdir/init.qcom.sh:root/init.qcom.sh \
-	$(LOCAL_PATH)/rootdir/init.qcom.usb.rc:root/init.qcom.usb.rc \
-	$(LOCAL_PATH)/rootdir/init.qcom.usb.sh:root/init.qcom.usb.sh \
-	$(LOCAL_PATH)/rootdir/init.qcom.class_core.sh:root/init.qcom.class_core.sh \
-	$(LOCAL_PATH)/rootdir/etc/init.qcom.fm.sh:system/etc/init.qcom.fm.sh \
-	$(LOCAL_PATH)/rootdir/etc/init.qcom.post_boot.sh:system/etc/init.qcom.post_boot.sh \
-	$(LOCAL_PATH)/rootdir/etc/init.qcom.bt.sh:system/etc/init.qcom.bt.sh \
-	$(LOCAL_PATH)/rootdir/etc/init.sec.boot.sh:system/etc/init.sec.boot.sh \
-	$(LOCAL_PATH)/rootdir/ueventd.qcom.rc:root/ueventd.qcom.rc
-	
+    $(LOCAL_PATH)/rootdir/fstab.qcom:root/fstab.qcom \
+    $(LOCAL_PATH)/rootdir/init.qcom.rc:root/init.qcom.rc \
+    $(LOCAL_PATH)/rootdir/init.qcom.sh:root/init.qcom.sh \
+    $(LOCAL_PATH)/rootdir/init.qcom.usb.rc:root/init.qcom.usb.rc \
+    $(LOCAL_PATH)/rootdir/init.qcom.usb.sh:root/init.qcom.usb.sh \
+    $(LOCAL_PATH)/rootdir/init.qcom.class_core.sh:root/init.qcom.class_core.sh \
+    $(LOCAL_PATH)/rootdir/etc/init.qcom.fm.sh:system/etc/init.qcom.fm.sh \
+    $(LOCAL_PATH)/rootdir/etc/init.qcom.post_boot.sh:system/etc/init.qcom.post_boot.sh \
+    $(LOCAL_PATH)/rootdir/etc/init.qcom.bt.sh:system/etc/init.qcom.bt.sh \
+    $(LOCAL_PATH)/rootdir/etc/init.sec.boot.sh:system/etc/init.sec.boot.sh \
+    $(LOCAL_PATH)/rootdir/ueventd.qcom.rc:root/ueventd.qcom.rc
+
 # Prebuilt kl keymaps
 PRODUCT_COPY_FILES += \
-	$(LOCAL_PATH)/keylayout/Synaptics_HID_TouchPad.idc:system/usr/idc/Synaptics_HID_TouchPad.idc \
-	$(LOCAL_PATH)/keylayout/ft5x06_ts.kl:system/usr/keylayout/ft5x06_ts.kl \
-	$(LOCAL_PATH)/keylayout/synaptics_dsx.kl:system/usr/keylayout/synaptics_dsx.kl \
-	$(LOCAL_PATH)/keylayout/gpio-keys.kl:system/usr/keylayout/gpio-keys.kl \
-	$(LOCAL_PATH)/keylayout/Generic.kl:system/usr/keylayout/Generic.kl \
-	$(LOCAL_PATH)/keylayout/synaptics_rmi4_i2c.kl:system/usr/keylayout/synaptics_rmi4_i2c.kl
-	
+    $(LOCAL_PATH)/keylayout/Synaptics_HID_TouchPad.idc:system/usr/idc/Synaptics_HID_TouchPad.idc \
+    $(LOCAL_PATH)/keylayout/ft5x06_ts.kl:system/usr/keylayout/ft5x06_ts.kl \
+    $(LOCAL_PATH)/keylayout/synaptics_dsx.kl:system/usr/keylayout/synaptics_dsx.kl \
+    $(LOCAL_PATH)/keylayout/gpio-keys.kl:system/usr/keylayout/gpio-keys.kl \
+    $(LOCAL_PATH)/keylayout/Generic.kl:system/usr/keylayout/Generic.kl \
+    $(LOCAL_PATH)/keylayout/synaptics_rmi4_i2c.kl:system/usr/keylayout/synaptics_rmi4_i2c.kl
+
 # Configurations
 PRODUCT_COPY_FILES += \
     frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml:system/etc/media_codecs_google_audio.xml \
@@ -76,7 +76,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/hostapd/hostapd.deny:system/etc/hostapd/hostapd.deny \
     $(LOCAL_PATH)/configs/wifi/p2p_supplicant_overlay.conf:system/etc/wifi/p2p_supplicant_overlay.conf \
     $(LOCAL_PATH)/configs/wifi/wpa_supplicant_overlay.conf:system/etc/wifi/wpa_supplicant_overlay.conf
-	
+
 # Doze
 PRODUCT_PACKAGES += \
     SamsungDoze
@@ -99,7 +99,7 @@ PRODUCT_PACKAGES += \
     tinycap \
     tinymix \
     tinypcminfo	
-	
+
 # Display
 PRODUCT_PACKAGES += \
     copybit.msm8916 \
@@ -110,7 +110,7 @@ PRODUCT_PACKAGES += \
     libqdutils \
     libqservice \
     libtinyxml
-	
+
 # Power
 PRODUCT_PACKAGES += \
     power.msm8916
@@ -127,7 +127,7 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     libmm-qcamera \
     camera.msm8916
-	
+
 # OMX
 PRODUCT_PACKAGES += \
     libc2dcolorconvert \
@@ -160,7 +160,7 @@ PRODUCT_PACKAGES += \
     ebtables \
     ethertypes \
     libebtc
-	
+
 # USB
 PRODUCT_PACKAGES += \
     com.android.future.usb.accessory
@@ -186,8 +186,8 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     libxml2 \
     Stk \
-	Stk2
-	
+    Stk2
+
 # SoftAP
 PRODUCT_PACKAGES += \
     libcurl \
@@ -215,17 +215,17 @@ ADDITIONAL_DEFAULT_PROPERTIES += \
 
 # KSM
 PRODUCT_PROPERTY_OVERRIDES += \
-	ro.ksm.default=0
+    ro.ksm.default=0
 
 # These are the hardware-specific settings that are stored in system properties.
 # Note that the only such settings should be the ones that are too low-level to
 # be reachable from resources or other mechanisms.
 PRODUCT_PROPERTY_OVERRIDES += \
-	cm.updater.uri=http://updates.cm-ota.pp.ua
+    cm.updater.uri=http://updates.cm-ota.pp.ua
 
 # Low-RAM optimizations
 ADDITIONAL_BUILD_PROPERTIES += \
-	config.disable_atlas=true
+    config.disable_atlas=true
 
 # We have enough storage space to hold precise GC data
 PRODUCT_TAGS += dalvik.gc.type-precise	
@@ -235,6 +235,5 @@ $(call inherit-product, device/samsung/qcom-common/qcom-common.mk)
 
 # Dalvik heap config
 include frameworks/native/build/phone-xhdpi-1024-dalvik-heap.mk
-include frameworks/native/build/phone-xxhdpi-2048-hwui-memory.mk
 
 PRODUCT_BUILD_PROP_OVERRIDES += BUILD_UTC_DATE=0
