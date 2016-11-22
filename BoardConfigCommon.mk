@@ -35,7 +35,7 @@ TARGET_CPU_CORTEX_A53           := true
 ARCH_ARM_HAVE_TLS_REGISTER      := true
 
 # Board CFLAGS
-COMMON_GLOBAL_CFLAGS            += -DQCOM_BSP
+COMMON_GLOBAL_CFLAGS                 += -DQCOM_BSP
 
 # Qcom
 TARGET_PLATFORM_DEVICE_BASE          := /devices/soc.0/
@@ -49,7 +49,7 @@ TARGET_SPECIFIC_HEADER_PATH := $(LOCAL_PATH)/include
 # Kernel
 BOARD_CUSTOM_BOOTIMG_MK          := $(LOCAL_PATH)/mkbootimg.mk
 BOARD_KERNEL_BASE                := 0x80000000
-BOARD_KERNEL_CMDLINE             := console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0 androidboot.hardware=qcom msm_rtb.filter=0x3F ehci-hcd.park=3 androidboot.bootdevice=7824900.sdhci androidboot.selinux=permissive
+BOARD_KERNEL_CMDLINE             := console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0 androidboot.hardware=qcom msm_rtb.filter=0x3F ehci-hcd.park=3 androidboot.bootdevice=7824900.sdhci
 BOARD_KERNEL_TAGS_OFFSET         := 0x81E00000
 BOARD_RAMDISK_OFFSET             := 0x82000000
 BOARD_KERNEL_PAGESIZE            := 2048
@@ -100,14 +100,14 @@ BOARD_HAVE_BLUETOOTH_QCOM                   := true
 BLUETOOTH_HCI_USE_MCT                       := true
 
 # Custom RIL class
-BOARD_RIL_CLASS                     := ../../../device/samsung/fortunaxx-common/ril/
-PROTOBUF_SUPPORTED                  := true
+BOARD_RIL_CLASS                      := ../../../device/samsung/fortunaxx-common/ril/
+PROTOBUF_SUPPORTED                   := true
 
 # Fonts
-EXTENDED_FONT_FOOTPRINT             := true
+EXTENDED_FONT_FOOTPRINT              := true
 
 # malloc implementation
-MALLOC_IMPL                         := dlmalloc
+MALLOC_IMPL                          := dlmalloc
 
 # Audio
 TARGET_QCOM_AUDIO_VARIANT            := caf
@@ -138,7 +138,7 @@ TARGET_PROVIDES_CAMERA_HAL           := true
 USE_DEVICE_SPECIFIC_CAMERA           := true
 
 # CMHW
-BOARD_HARDWARE_CLASS += $(LOCAL_PATH)/cmhw
+BOARD_HARDWARE_CLASS                 += $(LOCAL_PATH)/cmhw
 
 # Workaround to avoid issues with legacy liblights on QCOM platforms
 TARGET_PROVIDES_LIBLIGHT              := true
