@@ -2,7 +2,7 @@
 $(call inherit-product-if-exists, vendor/samsung/fortunaxx-common/fortunaxx-common-vendor.mk)
 
 # Common overlay
-DEVICE_PACKAGE_OVERLAYS += device/samsung/fortunaxx-common/overlay
+DEVICE_PACKAGE_OVERLAYS := $(LOCAL_PATH)/overlay
 
 # System properties
 -include device/samsung/fortunaxx-common/system_prop.mk
