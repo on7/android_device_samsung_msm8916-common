@@ -182,6 +182,8 @@ TARGET_RELEASETOOLS_EXTENSIONS      := $(LOCAL_PATH)
 # Misc.
 TARGET_SYSTEM_PROP                  := $(LOCAL_PATH)/system.prop
 
+PRODUCT_COPY_FILES                  := $(filter-out frameworks/base/data/keyboards/Generic.kl:system/usr/keylayout/Generic.kl , $(PRODUCT_COPY_FILES))
+
 # SELinux
 include device/qcom/sepolicy/sepolicy.mk
 
