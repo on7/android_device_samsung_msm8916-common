@@ -129,7 +129,7 @@ TARGET_POWERHAL_SET_INTERACTIVE_EXT  := $(LOCAL_PATH)/power/power_ext.c
 TARGET_POWERHAL_VARIANT              := qcom
 
 # Vold
-TARGET_USE_CUSTOM_LUN_FILE_PATH      := /sys/devices/platform/msm_hsusb/gadget/lun%d/file
+TARGET_USE_CUSTOM_LUN_FILE_PATH      := /sys/devices/platform/msm_hsusb/gadget/lun/file
 BOARD_VOLD_DISC_HAS_MULTIPLE_MAJORS  := true
 BOARD_VOLD_MAX_PARTITIONS            := 65
 
