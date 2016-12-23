@@ -123,8 +123,7 @@ PRODUCT_PACKAGES += \
 # Camera
 PRODUCT_PACKAGES += \
     libmm-qcamera \
-    camera.msm8916 \
-    Snap
+    camera.msm8916
 
 # OMX
 PRODUCT_PACKAGES += \
@@ -209,7 +208,7 @@ ADDITIONAL_DEFAULT_PROPERTIES += \
     ro.secure=0 \
     ro.adb.secure=0 \
     ro.debuggable=1 \
-    persist.service.adb.enable=1
+    persist.service.adb.enable=0
 
 # KSM
 PRODUCT_PROPERTY_OVERRIDES += \
