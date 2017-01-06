@@ -83,9 +83,6 @@ persist.debug.wfd.enable=1
 #propery to enable VDS WFD solution
 persist.hwc.enable_vds=1
 
-#property to enable narrow search range for video encoding
-vidc.enc.narrow.searchrange=1
-
 ro.config.max_starting_bg=8
 dalvik.vm.dex2oat-swap=false
 dalvik.vm.dex2oat-flags=--no-watch-dog

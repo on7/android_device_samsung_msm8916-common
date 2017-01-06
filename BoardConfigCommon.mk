@@ -47,14 +47,14 @@ TARGET_USES_NEW_ION_API              := true
 TARGET_SPECIFIC_HEADER_PATH := $(LOCAL_PATH)/include
 
 # Kernel
-BOARD_CUSTOM_BOOTIMG_MK          := $(LOCAL_PATH)/mkbootimg.mk
-BOARD_KERNEL_BASE                := 0x80000000
-BOARD_KERNEL_CMDLINE             := console=ttyHSL0,115200,n8 androidboot.console=ttyHSL0 androidboot.hardware=qcom msm_rtb.filter=0x3F ehci-hcd.park=3 androidboot.bootdevice=7824900.sdhci androidboot.selinux=permissive
-BOARD_KERNEL_TAGS_OFFSET         := 0x81E00000
-BOARD_RAMDISK_OFFSET             := 0x82000000
-BOARD_KERNEL_PAGESIZE            := 2048
-BOARD_KERNEL_SEPARATED_DT        := true
-TARGET_KERNEL_SOURCE             := kernel/samsung/fortunaxx
+BOARD_CUSTOM_BOOTIMG_MK            := $(LOCAL_PATH)/mkbootimg.mk
+BOARD_KERNEL_BASE                  := 0x80000000
+BOARD_KERNEL_CMDLINE               := console=null androidboot.hardware=qcom msm_rtb.filter=0x3F ehci-hcd.park=3 androidboot.bootdevice=7824900.sdhci androidboot.selinux=permissive
+BOARD_RAMDISK_OFFSET               := 0x02000000
+BOARD_KERNEL_TAGS_OFFSET           := 0x01e00000
+BOARD_KERNEL_PAGESIZE              := 2048
+BOARD_KERNEL_SEPARATED_DT          := true
+TARGET_KERNEL_SOURCE               := kernel/samsung/fortunaxx
 
 # Partition sizes
 TARGET_USERIMAGES_USE_EXT4          := true
@@ -110,8 +110,8 @@ EXTENDED_FONT_FOOTPRINT              := true
 MALLOC_IMPL                          := dlmalloc
 
 # Audio
-TARGET_QCOM_AUDIO_VARIANT            := caf
 BOARD_USES_ALSA_AUDIO                := true
+TARGET_QCOM_AUDIO_VARIANT            := caf
 
 # Charger
 BOARD_CHARGER_SHOW_PERCENTAGE        := true
@@ -129,7 +129,7 @@ TARGET_POWERHAL_SET_INTERACTIVE_EXT  := $(LOCAL_PATH)/power/power_ext.c
 TARGET_POWERHAL_VARIANT              := qcom
 
 # Vold
-TARGET_USE_CUSTOM_LUN_FILE_PATH      := /sys/devices/platform/msm_hsusb/gadget/lun%d/file
+TARGET_USE_CUSTOM_LUN_FILE_PATH      := /sys/devices/platform/msm_hsusb/gadget/lun/file
 BOARD_VOLD_DISC_HAS_MULTIPLE_MAJORS  := true
 BOARD_VOLD_MAX_PARTITIONS            := 65
 
@@ -159,8 +159,8 @@ MAX_EGL_CACHE_SIZE                    := 2048*1024
 OVERRIDE_RS_DRIVER                    := libRSDriver.so
 
 # Boot animation
-TARGET_SCREEN_WIDTH                   := 540
-TARGET_SCREEN_HEIGHT                  := 960
+TARGET_SCREEN_WIDTH                  := 540
+TARGET_SCREEN_HEIGHT                 := 960
 
 # Recovery
 TARGET_RECOVERY_FSTAB                := $(LOCAL_PATH)/rootdir/fstab.qcom
@@ -173,17 +173,14 @@ BOARD_RECOVERY_SWIPE                 := true
 BOARD_USE_CUSTOM_RECOVERY_FONT       := \"roboto_23x41.h\"
 BOARD_USES_MMCUTILS                  := true
 
-# Logging
-TARGET_USES_LOGD                    := false
-
 # Releasetools
-TARGET_RELEASETOOLS_EXTENSIONS      := $(LOCAL_PATH)
+TARGET_RELEASETOOLS_EXTENSIONS       := $(LOCAL_PATH)
 
 # Misc.
-TARGET_SYSTEM_PROP                  := $(LOCAL_PATH)/system.prop
+TARGET_SYSTEM_PROP                   := $(LOCAL_PATH)/system.prop
 
-PRODUCT_COPY_FILES                  := $(filter-out frameworks/base/data/keyboards/Generic.kl:system/usr/keylayout/Generic.kl , $(PRODUCT_COPY_FILES))
-PRODUCT_COPY_FILES                  := $(filter-out frameworks/av/media/libeffects/data/audio_effects.conf:system/etc/audio_effects.conf , $(PRODUCT_COPY_FILES))
+PRODUCT_COPY_FILES                   := $(filter-out frameworks/base/data/keyboards/Generic.kl:system/usr/keylayout/Generic.kl , $(PRODUCT_COPY_FILES))
+PRODUCT_COPY_FILES                   := $(filter-out frameworks/av/media/libeffects/data/audio_effects.conf:system/etc/audio_effects.conf , $(PRODUCT_COPY_FILES))
 
 # SELinux
 include device/qcom/sepolicy/sepolicy.mk

@@ -47,7 +47,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/keylayout/Synaptics_HID_TouchPad.idc:system/usr/idc/Synaptics_HID_TouchPad.idc \
     $(LOCAL_PATH)/keylayout/gpio-keys.kl:system/usr/keylayout/gpio-keys.kl \
     $(LOCAL_PATH)/keylayout/synaptics_rmi4_i2c.kl:system/usr/keylayout/synaptics_rmi4_i2c.kl \
-	$(LOCAL_PATH)/keylayout/Generic.kl:system/usr/keylayout/Generic.kl
+    $(LOCAL_PATH)/keylayout/Generic.kl:system/usr/keylayout/Generic.kl
 
 # Configurations
 PRODUCT_COPY_FILES += \
@@ -119,7 +119,7 @@ PRODUCT_PACKAGES += \
 # Keystore
 PRODUCT_PACKAGES += \
     keystore.msm8916
-    
+
 # Camera
 PRODUCT_PACKAGES += \
     libmm-qcamera \
@@ -209,7 +209,7 @@ ADDITIONAL_DEFAULT_PROPERTIES += \
     ro.secure=0 \
     ro.adb.secure=0 \
     ro.debuggable=1 \
-    persist.service.adb.enable=0
+    persist.service.adb.enable=1
 
 # KSM
 PRODUCT_PROPERTY_OVERRIDES += \
