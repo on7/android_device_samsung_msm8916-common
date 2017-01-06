@@ -73,6 +73,8 @@ ro.qualcomm.cabl=0
 debug.sf.hw=1
 debug.egl.hw=1
 
+ro.crypto.fuse_sdcard=true
+
 #system props for time-services
 persist.timed.enable=true
 
