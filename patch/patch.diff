@@ -221,10 +221,10 @@ diff -ur a/hardware/qcom/fm/fmapp2/src/com/caf/fmradio/FMRadio.java b/hardware/q
         Log.d(LOGTAG, "KEY event received" + keyCode);
         switch (keyCode) {
 +           case KeyEvent.KEYCODE_VOLUME_UP:
-+                audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
++                audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, 1);
 +                return true;
 +           case KeyEvent.KEYCODE_VOLUME_DOWN:
-+                audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
++                audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, 1);
 +                return true;
             case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
             case 126: //KeyEvent.KEYCODE_MEDIA_PLAY:
