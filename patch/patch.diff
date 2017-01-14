@@ -216,15 +216,17 @@ diff -ur a/hardware/qcom/fm/fmapp2/src/com/caf/fmradio/FMRadioService.java b/har
 diff -ur a/hardware/qcom/fm/fmapp2/src/com/caf/fmradio/FMRadio.java b/hardware/qcom/fm/fmapp2/src/com/caf/fmradio/FMRadio.java
 --- a/hardware/qcom/fm/fmapp2/src/com/caf/fmradio/FMRadio.java	Mon Jun 20 17:28:46 2016
 +++ b/hardware/qcom/fm/fmapp2/src/com/caf/fmradio/FMRadio.java	Mon Jun 27 10:45:01 2016
-@@ -2625,6 +2625,12 @@
+@@ -2624,7 +2624,14 @@
+    @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         Log.d(LOGTAG, "KEY event received" + keyCode);
++       AudioManager audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         switch (keyCode) {
 +           case KeyEvent.KEYCODE_VOLUME_UP:
-+                audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, 1);
++                audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
 +                return true;
 +           case KeyEvent.KEYCODE_VOLUME_DOWN:
-+                audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, 1);
++                audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
 +                return true;
             case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
             case 126: //KeyEvent.KEYCODE_MEDIA_PLAY:
