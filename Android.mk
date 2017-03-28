@@ -18,7 +18,7 @@ LOCAL_PATH := $(call my-dir)
 
 ifeq ($(BOARD_VENDOR),samsung)
 ifeq ($(TARGET_BOARD_PLATFORM),msm8916)
-ifneq ($(filter e53g e5lte,$(TARGET_DEVICE)),) 
+ifneq ($(filter e53g e5lte o7prolte,$(TARGET_DEVICE)),) 
 include $(call all-makefiles-under,$(LOCAL_PATH))
 
 include $(CLEAR_VARS)
