@@ -21,7 +21,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
     ro.multisim.simslotcount=2 \
     ro.ril.telephony.mqanelements=6 \
     persist.radio.multisim.config=dsds \
-
+    telephony.lteOnGsmDevice=0
 # Netmgrd
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.use_data_netmgrd=false \
