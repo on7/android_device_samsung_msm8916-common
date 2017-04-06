@@ -71,11 +71,6 @@ static int rgb_to_brightness(struct light_state_t const *state)
 		+ (150*((color>>8) & 0x00ff)) + (29*(color & 0x00ff))) >> 8;
 }
 
-static int is_lit(struct light_state_t const* state)
-{
-     return state->color & 0x00ffffff;
-}
-
 static int set_light_backlight(struct light_device_t *dev, struct light_state_t const* state)
 {
      int err = 0;
@@ -104,6 +99,7 @@ static int open_lights(const struct hw_module_t *module, char const *name, struc
 
      if (0 == strcmp(LIGHT_ID_BACKLIGHT, name))
         set_light = set_light_backlight;
+     else
         return -EINVAL;
 
      pthread_once(&g_init, init_globals);
