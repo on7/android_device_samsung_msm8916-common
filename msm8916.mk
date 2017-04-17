@@ -62,6 +62,12 @@ PRODUCT_PACKAGES += \
     tinycap \
     tinymix \
     tinypcminfo
+	
+# FM
+PRODUCT_PACKAGES += \
+    FM2 \
+    libqcomfm_jni \
+    qcom.fmradio
 
 # Display
 PRODUCT_PACKAGES += \
