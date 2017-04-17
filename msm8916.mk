@@ -170,10 +170,6 @@ PRODUCT_PACKAGES += \
     libxml2 \
     Stk
 
-# Misc libs
-PRODUCT_PACKAGES += \
-    libril_shim
-
 # Audio configuration
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/audio/audio_effects.conf:system/vendor/etc/audio_effects.conf \
