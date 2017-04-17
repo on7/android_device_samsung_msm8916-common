@@ -159,8 +159,8 @@ PRODUCT_PACKAGES += \
 
 # Misc
 PRODUCT_PACKAGES += \
-	rmnetcli \
-	librmnetctl \
+    rmnetcli \
+    librmnetctl \
     libxml2 \
     Stk
 
