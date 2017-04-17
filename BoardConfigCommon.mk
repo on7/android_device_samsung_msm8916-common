@@ -56,7 +56,6 @@ BOARD_FLASH_BLOCK_SIZE       := 131072
 BLOCK_BASED_OTA              := false
 
 # Bluetooth
-BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/samsung/msm8916-common/configs/bluetooth
 BOARD_HAVE_BLUETOOTH := true
 BOARD_HAVE_BLUETOOTH_QCOM := true
 BLUETOOTH_HCI_USE_MCT := true
