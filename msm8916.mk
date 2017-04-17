@@ -15,7 +15,7 @@
 $(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
 
 # Common overlay
-DEVICE_PACKAGE_OVERLAYS += device/samsung/j5-common/overlay
+DEVICE_PACKAGE_OVERLAYS += device/samsung/msm8916-common/overlay
 
 # Screen density
 PRODUCT_AAPT_PREF_CONFIG := xhdpi
