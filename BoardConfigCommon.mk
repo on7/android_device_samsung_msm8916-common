@@ -23,7 +23,7 @@
 # inherit from qcom-common
 -include device/samsung/qcom-common/BoardConfigCommon.mk
 
-LOCAL_PATH := device/samsung/j5-common
+LOCAL_PATH := device/samsung/msm8916-common
 
 # Platform
 TARGET_BOARD_PLATFORM := msm8916
@@ -36,7 +36,7 @@ TARGET_GLOBAL_CPPFLAGS += -mfpu=neon -mfloat-abi=softfp
 TARGET_CPU_VARIANT := cortex-a53
 TARGET_CPU_CORTEX_A53 := true
 
-TARGET_SPECIFIC_HEADER_PATH := device/samsung/j5-common/include
+TARGET_SPECIFIC_HEADER_PATH := device/samsung/msm8916-common/include
 
 # Text Relocations
 TARGET_NEEDS_PLATFORM_TEXT_RELOCATIONS := true
@@ -56,7 +56,7 @@ BOARD_FLASH_BLOCK_SIZE       := 131072
 BLOCK_BASED_OTA              := false
 
 # Bluetooth
-BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/samsung/j5-common/configs/bluetooth
+BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/samsung/msm8916-common/configs/bluetooth
 BOARD_HAVE_BLUETOOTH := true
 BOARD_HAVE_BLUETOOTH_QCOM := true
 BLUETOOTH_HCI_USE_MCT := true
@@ -77,11 +77,11 @@ AUDIO_FEATURE_ENABLED_KPI_OPTIMIZE := true
 USE_CUSTOM_AUDIO_POLICY := 1
 
 # Custom RIL class
-BOARD_RIL_CLASS := ../../../device/samsung/j5-common/ril/
+BOARD_RIL_CLASS := ../../../device/samsung/msm8916-common/ril/
 USE_DEVICE_SPECIFIC_DATASERVICES := true
 
 # PowerHAL
-TARGET_POWERHAL_SET_INTERACTIVE_EXT := device/samsung/j5-common/configs/power/power_ext.c
+TARGET_POWERHAL_SET_INTERACTIVE_EXT := device/samsung/msm8916-common/configs/power/power_ext.c
 TARGET_POWERHAL_VARIANT := qcom
 #WITH_QC_PERF := true
 
@@ -103,6 +103,11 @@ TARGET_USES_WCNSS_CTRL           := true
 WPA_SUPPLICANT_VERSION           := VER_0_8_X
 WIFI_DRIVER_FW_PATH_STA          := "sta"
 WIFI_DRIVER_FW_PATH_AP           := "ap"
+
+# Kernel config
+TARGET_KERNEL_CONFIG := msm8916_sec_defconfig
+TARGET_KERNEL_SELINUX_CONFIG := selinux_defconfig
+TARGET_KERNEL_SOURCE := kernel/samsung/msm8916-kernel
 
 # Vold
 TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/msm_hsusb/gadget/lun%d/file
@@ -153,7 +158,7 @@ BOARD_SEPOLICY_DIRS += \
     $(LOCAL_PATH)/sepolicy
 
 # Misc.
-TARGET_SYSTEM_PROP := device/samsung/j5-common/system.prop
+TARGET_SYSTEM_PROP := device/samsung/msm8916-common/system.prop
 
 # TWRP
 # Display
@@ -170,8 +175,7 @@ BOARD_HAS_NO_SELECT_BUTTON := true
 
 # Storage
 #RECOVERY_VARIANT := twrp
-#TARGET_RECOVERY_FSTAB := device/samsung/j5-common/configs/recovery/twrp.fstab
-TARGET_RECOVERY_FSTAB := device/samsung/j5-common/rootdir/etc/fstab.qcom
+TARGET_RECOVERY_FSTAB := device/samsung/msm8916-common/rootdir/etc/fstab.qcom
 TW_INTERNAL_STORAGE_PATH := "/data/media"
 TW_INTERNAL_STORAGE_MOUNT_POINT := "data"
 TW_EXTERNAL_STORAGE_PATH := "/external_sd"
