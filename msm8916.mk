@@ -166,8 +166,6 @@ PRODUCT_PACKAGES += \
 
 # Misc
 PRODUCT_PACKAGES += \
-    rmnetcli \
-    librmnetctl \
     libxml2 \
     Stk
 
@@ -238,10 +236,11 @@ PRODUCT_PACKAGES += \
     libwpa_client \
     wpa_supplicant \
     wpa_supplicant.conf
-
-# RIL
+    
+#Rmnet
 PRODUCT_PROPERTY_OVERRIDES += \
-    ro.telephony.ril_class=J5RIL
+    rmnetcli \
+    librmnetctl
 
 # Camera
 PRODUCT_PROPERTY_OVERRIDES += \
