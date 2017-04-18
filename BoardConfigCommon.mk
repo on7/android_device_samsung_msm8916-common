@@ -111,7 +111,7 @@ WIFI_DRIVER_FW_PATH_AP           := "ap"
 # Kernel config
 TARGET_KERNEL_CONFIG := msm8916_sec_defconfig
 TARGET_KERNEL_SELINUX_CONFIG := selinux_defconfig
-TARGET_KERNEL_SOURCE := kernel/samsung/msm8916-kernel
+TARGET_KERNEL_SOURCE := kernel/samsung/msm8916-common
 
 # Vold
 TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/msm_hsusb/gadget/lun%d/file
