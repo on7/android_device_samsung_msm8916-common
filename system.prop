@@ -80,6 +80,7 @@ media.aac_51_output_enabled=true
 wifi.interface=wlan0
 
 # Bluetooth
+qcom.bluetooth.soc=smd
 ro.qualcomm.bt.hci_transport=smd
 
 # Misc.
