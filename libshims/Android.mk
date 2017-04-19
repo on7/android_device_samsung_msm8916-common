@@ -21,7 +21,7 @@ LOCAL_SHARED_LIBRARIES := liblog libcutils libbinder libutils
 LOCAL_SRC_FILES := \
     libshim_ril.c
 
-LOCAL_MODULE := libshim_ril
+LOCAL_MODULE := libril_shim
 LOCAL_MODULE_CLASS := SHARED_LIBRARIES
 
 include $(BUILD_SHARED_LIBRARY)
