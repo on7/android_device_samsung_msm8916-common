@@ -82,7 +82,6 @@ USE_CUSTOM_AUDIO_POLICY := 1
 
 # Custom RIL class
 BOARD_RIL_CLASS := ../../../device/samsung/msm8916-common/ril/
-USE_DEVICE_SPECIFIC_DATASERVICES := true
 
 # PowerHAL
 TARGET_POWERHAL_SET_INTERACTIVE_EXT := device/samsung/msm8916-common/configs/power/power_ext.c
