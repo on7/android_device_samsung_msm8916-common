@@ -15,6 +15,9 @@
 
 LOCAL_PATH := $(call my-dir)
 
+SAMSUNG_TARGETS := j5nltexx j5ltexx j53gxx j5ltedx j5lteub j5ltezt j5yltedo j5ltechn
+
+ifneq ($(filter $(SAMSUNG_TARGETS),$(TARGET_DEVICE)),)
 include $(call all-makefiles-under,$(LOCAL_PATH))
 
 include $(CLEAR_VARS)
@@ -312,3 +315,5 @@ $(shell mkdir -p $(TARGET_OUT_ETC)/firmware/wlan/prima; \
     $(TARGET_OUT_ETC)/firmware/wlan/prima/WCNSS_qcom_wlan_nv.bin; \
     ln -sf /data/misc/wifi/WCNSS_qcom_cfg.ini \
     $(TARGET_OUT_ETC)/firmware/wlan/prima/WCNSS_qcom_cfg.ini)
+
+endif
