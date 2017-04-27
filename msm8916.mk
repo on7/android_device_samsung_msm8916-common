@@ -184,6 +184,14 @@ PRODUCT_COPY_FILES += \
 	$(LOCAL_PATH)/rootdir/etc/init.sec.boot.sh:system/etc/init.sec.boot.sh \
 	$(LOCAL_PATH)/rootdir/ueventd.qcom.rc:root/ueventd.qcom.rc
 
+# Prebuilt kl keymaps
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/keylayout/Synaptics_HID_TouchPad.idc:system/usr/idc/Synaptics_HID_TouchPad.idc
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/keylayout/Synaptics_RMI4_TouchPad_Sensor.idc:usr/idc/Synaptics_RMI4_TouchPad_Sensor.idc
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/keylayout/ft5x06_ts.kl:system/usr/keylayout/ft5x06_ts.kl
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/keylayout/synaptics_dsx.kl:system/usr/keylayout/synaptics_dsx.kl
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/keylayout/gpio-keys.kl:system/usr/keylayout/gpio-keys.kl
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/keylayout/synaptics_rmi4_i2c.kl:system/usr/keylayout/synaptics_rmi4_i2c.kl
+
 # Set default USB configuration
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     persist.sys.usb.config=mtp
