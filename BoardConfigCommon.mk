@@ -80,6 +80,9 @@ BOARD_USES_ALSA_AUDIO := true
 USE_CUSTOM_AUDIO_POLICY := 1
 TARGET_QCOM_AUDIO_VARIANT := caf
 
+# Release Tools
+TARGET_RELEASETOOLS_EXTENSIONS := $(LOCAL_PATH)/releasetools
+
 # Custom RIL class
 BOARD_RIL_CLASS := ../../../device/samsung/msm8916-common/ril/
 
@@ -142,6 +145,7 @@ TARGET_QCOM_MEDIA_VARIANT := caf
 
 # Enable HW based full disk encryption
 TARGET_HW_DISK_ENCRYPTION := true
+TARGET_KEYMASTER_WAIT_FOR_QSEE := true
 
 # Display
 TARGET_CONTINUOUS_SPLASH_ENABLED := true
@@ -168,6 +172,7 @@ PRODUCT_COPY_FILES := $(filter-out frameworks/av/media/libeffects/data/audio_eff
 # Display
 TW_THEME := portrait_hdpi
 RECOVERY_GRAPHICS_USE_LINELENGTH := true
+BOARD_HAS_LARGE_FILESYSTEM := true
 TARGET_RECOVERY_PIXEL_FORMAT := "RGB_565"
 TW_BRIGHTNESS_PATH := "/sys/devices/soc.0/1a00000.qcom\x2cmdss_mdp/qcom\x2cmdss_fb_primary.137/leds/lcd-backlight/brightness"
 TW_MAX_BRIGHTNESS := 255
