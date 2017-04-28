@@ -23,6 +23,8 @@ PRODUCT_AAPT_PREF_CONFIG := xhdpi
 # Permissions
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/handheld_core_hardware.xml:system/etc/permissions/handheld_core_hardware.xml \
+    frameworks/native/data/etc/android.hardware.audio.low_latency.xml:system/etc/permissions/android.hardware.audio.low_latency.xml \
+    packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:system/etc/permissions/android.software.live_wallpaper.xml \
     frameworks/native/data/etc/android.hardware.camera.flash-autofocus.xml:system/etc/permissions/android.hardware.camera.flash-autofocus.xml \
     frameworks/native/data/etc/android.hardware.camera.front.xml:system/etc/permissions/android.hardware.camera.front.xml \
     frameworks/native/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml \
@@ -47,25 +49,27 @@ PRODUCT_PACKAGES += \
 # Audio
 PRODUCT_PACKAGES += \
     audiod \
-    audio.primary.msm8916 \
     audio.a2dp.default \
+    audio.primary.msm8916 \
     audio.r_submix.default \
     audio.usb.default \
     libaudio-resampler \
     libqcompostprocbundle \
     libqcomvisualizer \
-    libqcomvoiceprocessing
+    libqcomvoiceprocessing	
 
 # TinyAlsa utils
 PRODUCT_PACKAGES += \
     tinyplay \
     tinycap \
     tinymix \
-    tinypcminfo
+    tinypcminfo \
+    libtinycompress
 	
 # FM
 PRODUCT_PACKAGES += \
     FM2 \
+    FMRecord \
     libqcomfm_jni \
     qcom.fmradio
 
@@ -132,7 +136,6 @@ PRODUCT_PACKAGES += \
 # Configuration scripts
 PRODUCT_PACKAGES += \
     init.qcom.bt.sh \
-    init.qti.ims.sh \
     init.link_ril_db.sh
 
 # Ramdisk
@@ -169,6 +172,13 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     libxml2 \
     Stk
+	
+# Live Wallpapers
+PRODUCT_PACKAGES += \
+    LiveWallpapers \
+    LiveWallpapersPicker \
+    VisualizationWallpapers \
+    librs_jni
 
 # Audio configuration
 PRODUCT_COPY_FILES += \

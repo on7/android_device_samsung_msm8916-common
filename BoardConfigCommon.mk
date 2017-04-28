@@ -76,9 +76,9 @@ BOARD_HARDWARE_CLASS += \
     $(LOCAL_PATH)/cmhw
 
 # Audio
-BOARD_USES_ALSA_AUDIO := true
-AUDIO_FEATURE_ENABLED_KPI_OPTIMIZE := true
-USE_CUSTOM_AUDIO_POLICY := 1
+BOARD_USES_ALSA_AUDIOE := true
+USE_CUSTOM_AUDIO_POLICYE := 1
+TARGET_QCOM_AUDIO_VARIANTE := caf
 
 # Custom RIL class
 BOARD_RIL_CLASS := ../../../device/samsung/msm8916-common/ril/
@@ -162,6 +162,7 @@ BOARD_SEPOLICY_DIRS += \
 
 # Misc.
 TARGET_SYSTEM_PROP := device/samsung/msm8916-common/system.prop
+PRODUCT_COPY_FILES := $(filter-out frameworks/av/media/libeffects/data/audio_effects.conf:system/etc/audio_effects.conf , $(PRODUCT_COPY_FILES))
 
 # TWRP
 # Display

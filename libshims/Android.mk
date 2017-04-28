@@ -15,13 +15,6 @@
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
-LOCAL_SHARED_LIBRARIES := liblog libcutils libbinder libutils
-LOCAL_SRC_FILES := libril_shim.c
-LOCAL_MODULE := libril_shim
-LOCAL_MODULE_TAGS := optional
-include $(BUILD_SHARED_LIBRARY)
-
-include $(CLEAR_VARS)
 
 LOCAL_SHARED_LIBRARIES := liblog libcutils libgui libbinder libutils
 LOCAL_SRC_FILES := libshim_wvm.cpp
