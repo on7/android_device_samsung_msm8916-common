@@ -41,18 +41,18 @@ import java.util.Collections;
  *
  * {@hide}
  */
-public class J5RIL extends RIL {
+public class MSM8916 extends RIL {
 
     private static final int RIL_UNSOL_ON_SS_LL = 11055;
 
     private boolean mIsGsm = false;
 
-    public J5RIL(Context context, int networkMode, int cdmaSubscription) {
+    public MSM8916(Context context, int networkMode, int cdmaSubscription) {
         super(context, networkMode, cdmaSubscription, null);
         mQANElements = 6;
     }
 
-    public J5RIL(Context context, int preferredNetworkType,
+    public MSM8916(Context context, int preferredNetworkType,
             int cdmaSubscription, Integer instanceId) {
         super(context, preferredNetworkType, cdmaSubscription, instanceId);
         mQANElements = 6;
