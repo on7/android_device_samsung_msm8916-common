@@ -86,10 +86,10 @@ TARGET_RELEASETOOLS_EXTENSIONS := $(LOCAL_PATH)/releasetools
 # Custom RIL class
 BOARD_RIL_CLASS := ../../../device/samsung/msm8916-common/ril/
 
-# PowerHAL
-TARGET_POWERHAL_SET_INTERACTIVE_EXT := device/samsung/msm8916-common/configs/power/power_ext.c
+# Power
 TARGET_POWERHAL_VARIANT := qcom
-#WITH_QC_PERF := true
+CM_POWERHAL_EXTENSION := qcom
+WITH_QC_PERF := true
 
 # Charger
 BOARD_CHARGER_SHOW_PERCENTAGE := true
