@@ -1,1 +1,1 @@
-llow debuggerd media_rw_data_file:file { getattr open read };
+allow debuggerd media_rw_data_file:file { getattr open read };
