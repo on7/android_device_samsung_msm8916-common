@@ -151,12 +151,6 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     fsck.f2fs
 
-# Live Wallpapers
-PRODUCT_PACKAGES += \
-    LiveWallpapers \
-    LiveWallpapersPicker \
-    VisualizationWallpapers
-
 # WCNSS service daemon
 PRODUCT_PACKAGES += \
     libwcnss_qmi \
