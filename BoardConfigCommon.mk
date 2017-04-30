@@ -33,6 +33,7 @@ TARGET_CPU_CORTEX_A53 := true
 TARGET_GLOBAL_CFLAGS += -mfpu=neon -mfloat-abi=softfp
 TARGET_GLOBAL_CPPFLAGS += -mfpu=neon -mfloat-abi=softfp
 COMMON_GLOBAL_CFLAGS += -DQCOM_BSP
+TARGET_SPECIFIC_HEADER_PATH := device/samsung/msm8916-common/include
 
 # Kernel
 TARGET_KERNEL_ARCH := arm
@@ -132,13 +133,6 @@ WPA_SUPPLICANT_VERSION           := VER_0_8_X
 WIFI_DRIVER_FW_PATH_STA          := "sta"
 WIFI_DRIVER_FW_PATH_AP           := "ap"
 
-#WLAN_MODULES:
-#	mkdir -p $(KERNEL_MODULES_OUT)/pronto
-#	mv $(KERNEL_MODULES_OUT)/wlan.ko $(KERNEL_MODULES_OUT)/pronto/pronto_wlan.ko
-#	ln -sf /system/lib/modules/pronto/pronto_wlan.ko $(TARGET_OUT)/lib/modules/wlan.ko
-
-#TARGET_KERNEL_MODULES += WLAN_MODULES
-
 # CMHW
 BOARD_HARDWARE_CLASS += $(VENDOR_PATH)/cmhw
 
@@ -154,3 +148,4 @@ TARGET_PROVIDES_LIBLIGHT := true
 # Camera
 TARGET_PROVIDES_CAMERA_HAL := true
 USE_DEVICE_SPECIFIC_CAMERA := true
+BOARD_USE_SAMSUNG_CAMERAFORMAT_NV21 := true

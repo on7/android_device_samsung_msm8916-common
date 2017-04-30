@@ -19,7 +19,6 @@ package com.android.internal.telephony;
 import static com.android.internal.telephony.RILConstants.*;
 
 import android.content.Context;
-import android.media.AudioManager;
 import android.telephony.Rlog;
 import android.os.AsyncResult;
 import android.os.Message;
@@ -27,7 +26,6 @@ import android.os.Parcel;
 import android.os.SystemProperties;
 import android.telephony.PhoneNumberUtils;
 import android.telephony.SignalStrength;
-
 import com.android.internal.telephony.cdma.CdmaInformationRecords;
 import com.android.internal.telephony.cdma.CdmaInformationRecords.CdmaSignalInfoRec;
 import com.android.internal.telephony.cdma.SignalToneUtil;
@@ -37,7 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 /**
- * Qualcomm RIL Customisation for Samsung MSM8916 (GSM/CDMA) LTE devices
+ * RIL customization for MSM8916 devices
  *
  * {@hide}
  */
@@ -45,44 +43,23 @@ public class MSM8916RIL extends RIL {
 
     private static final int RIL_REQUEST_DIAL_EMERGENCY = 10001;
     private static final int RIL_UNSOL_ON_SS_LL = 11055;
+    
+    private boolean setPreferredNetworkTypeSeen = false;
 
     private boolean mIsGsm = false;
 
-    AudioManager mAudioManager;
-
-    public MSM8916RIL(Context context, int networkMode, int cdmaSubscription) {
-        this(context, networkMode, cdmaSubscription, null);
+    public MSM8916RIL(Context context, int preferredNetworkType, int cdmaSubscription) {
+        super(context, preferredNetworkType, cdmaSubscription, null);
     }
 
     public MSM8916RIL(Context context, int preferredNetworkType,
             int cdmaSubscription, Integer instanceId) {
         super(context, preferredNetworkType, cdmaSubscription, instanceId);
-        mQANElements = 6;
-
-        Rlog.d(RILJ_LOG_TAG, "Setting mAudioManager..");
-        mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-    }
-
-    /*
-     * Samsung-specific modification to enable call audio routing.
-     */
-    private void setRealCall(boolean value) {
-        if (value) {
-            Rlog.d(RILJ_LOG_TAG, "Setting realcall param to: on");
-            mAudioManager.setParameters("realcall=on");
-        }
-        else {
-            Rlog.d(RILJ_LOG_TAG, "Setting realcall param to: off");
-            mAudioManager.setParameters("realcall=off");
-        }
     }
 
     @Override
     public void
     dial(String address, int clirMode, UUSInfo uusInfo, Message result) {
-
-        setRealCall(true);
-
         if (PhoneNumberUtils.isEmergencyNumber(address)) {
             dialEmergencyCall(address, clirMode, result);
             return;
@@ -111,38 +88,9 @@ public class MSM8916RIL extends RIL {
     }
 
     @Override
-    public void
-    hangupConnection (int gsmIndex, Message result) {
-           super.hangupConnection(gsmIndex, result);
-           setRealCall(false);
-    }
-
-
-    @Override
-    public void
-    hangupForegroundResumeBackground (Message result) {
-            super.hangupForegroundResumeBackground(result);
-            setRealCall(true);
-    }
-
-    @Override
-    public void
-    switchWaitingOrHoldingAndActive (Message result) {
-            super.switchWaitingOrHoldingAndActive(result);
-            setRealCall(true);
-    }
-
-    @Override
-    public void
-    rejectCall (Message result) {
-            super.rejectCall(result);
-            setRealCall(false);
-    }
-
-    @Override
     protected Object
     responseIccCardStatus(Parcel p) {
-        IccCardApplicationStatus appStatus;
+        IccCardApplicationStatus appStatus = null;
 
         IccCardStatus cardStatus = new IccCardStatus();
         cardStatus.setCardState(p.readInt());
@@ -159,11 +107,8 @@ public class MSM8916RIL extends RIL {
         }
         cardStatus.mApplications = new IccCardApplicationStatus[numApplications];
 
-        appStatus = new IccCardApplicationStatus();
         for (int i = 0 ; i < numApplications ; i++) {
-            if (i!=0) {
-                appStatus = new IccCardApplicationStatus();
-            }
+            appStatus = new IccCardApplicationStatus();
             appStatus.app_type       = appStatus.AppTypeFromRILInt(p.readInt());
             appStatus.app_state      = appStatus.AppStateFromRILInt(p.readInt());
             appStatus.perso_substate = appStatus.PersoSubstateFromRILInt(p.readInt());
@@ -177,13 +122,18 @@ public class MSM8916RIL extends RIL {
             p.readInt(); // pin2_num_retries
             p.readInt(); // puk2_num_retries
             p.readInt(); // perso_unblock_retries
+
             cardStatus.mApplications[i] = appStatus;
         }
+
         // For Sprint LTE only SIM
-        if (numApplications==1 && !mIsGsm && appStatus.app_type == appStatus.AppTypeFromRILInt(2)) {
-            cardStatus.mApplications = new IccCardApplicationStatus[numApplications+2];
+        if (appStatus != null
+                && numApplications == 1
+                && !mIsGsm
+                && appStatus.app_type == appStatus.AppTypeFromRILInt(2)) {
+            cardStatus.mApplications = new IccCardApplicationStatus[3];
+            cardStatus.mApplications[0] = appStatus;
             cardStatus.mGsmUmtsSubscriptionAppIndex = 0;
-            cardStatus.mApplications[cardStatus.mGsmUmtsSubscriptionAppIndex]=appStatus;
             cardStatus.mCdmaSubscriptionAppIndex = 1;
             cardStatus.mImsSubscriptionAppIndex = 2;
 
@@ -294,24 +244,44 @@ public class MSM8916RIL extends RIL {
     }
 
     @Override
-    protected Object responseSignalStrength(Parcel p) {
-        int numInts = 12;
-        int response[];
+    protected Object
+    responseSignalStrength(Parcel p) {
+        int gsmSignalStrength = p.readInt() & 0xff;
+        int gsmBitErrorRate = p.readInt();
+        int cdmaDbm = p.readInt();
+        int cdmaEcio = p.readInt();
+        int evdoDbm = p.readInt();
+        int evdoEcio = p.readInt();
+        int evdoSnr = p.readInt();
+        int lteSignalStrength = p.readInt();
+        int lteRsrp = p.readInt();
+        int lteRsrq = p.readInt();
+        int lteRssnr = p.readInt();
+        int lteCqi = p.readInt();
+        int tdScdmaRscp = p.readInt();
+        // constructor sets default true, makeSignalStrengthFromRilParcel does not set it
 
-        // Get raw data
-        response = new int[numInts];
-        for (int i = 0; i < numInts; i++) {
-            response[i] = p.readInt();
+        if ((lteSignalStrength & 0xff) == 255 || lteSignalStrength == 99) {
+            lteSignalStrength = 99;
+            lteRsrp = SignalStrength.INVALID;
+            lteRsrq = SignalStrength.INVALID;
+            lteRssnr = SignalStrength.INVALID;
+            lteCqi = SignalStrength.INVALID;
+        } else {
+            lteSignalStrength &= 0xff;
         }
-        //gsm
-        response[0] &= 0xff; //gsmSignalStrength
-        //cdma
-        response[2] %= 256; //cdmaDbm
-        response[4] %= 256; //evdoDbm
-        response[7] &= 0xff; //lteSignalStrength
 
-        return new SignalStrength(response[0], response[1], response[2], response[3], response[4], response[5], response[6], response[7], response[8], response[9], response[10], response[11], true);
+        if (RILJ_LOGD)
+            riljLog("gsmSignalStrength:" + gsmSignalStrength + " gsmBitErrorRate:" + gsmBitErrorRate +
+                    " cdmaDbm:" + cdmaDbm + " cdmaEcio:" + cdmaEcio + " evdoDbm:" + evdoDbm +
+                    " evdoEcio: " + evdoEcio + " evdoSnr:" + evdoSnr +
+                    " lteSignalStrength:" + lteSignalStrength + " lteRsrp:" + lteRsrp +
+                    " lteRsrq:" + lteRsrq + " lteRssnr:" + lteRssnr + " lteCqi:" + lteCqi +
+                    " tdScdmaRscp:" + tdScdmaRscp + " isGsm:" + (mIsGsm ? "true" : "false"));
 
+        return new SignalStrength(gsmSignalStrength, gsmBitErrorRate, cdmaDbm, cdmaEcio, evdoDbm,
+                evdoEcio, evdoSnr, lteSignalStrength, lteRsrp, lteRsrq, lteRssnr, lteCqi,
+                tdScdmaRscp, mIsGsm);
     }
 
     @Override
@@ -336,6 +306,7 @@ public class MSM8916RIL extends RIL {
     @Override
     public void setPhoneType(int phoneType) {
         super.setPhoneType(phoneType);
+        mIsGsm = (phoneType != RILConstants.CDMA_PHONE);
     }
 
     @Override
@@ -362,7 +333,6 @@ public class MSM8916RIL extends RIL {
     @Override
     public void
     acceptCall (Message result) {
-        setRealCall(true);
         RILRequest rr
                 = RILRequest.obtain(RIL_REQUEST_ANSWER, result);
 
@@ -373,6 +343,7 @@ public class MSM8916RIL extends RIL {
 
         send(rr);
     }
+
 
     private void
     dialEmergencyCall(String address, int clirMode, Message result) {
@@ -464,13 +435,26 @@ public class MSM8916RIL extends RIL {
         return response;
     }
     
-    private void setWbAmr(int state) {
-        if (state == 1) {
-            Rlog.d(RILJ_LOG_TAG, "setWbAmr(): setting audio parameter - wb_amr=on");
-            mAudioManager.setParameters("wb_amr=on");
-        }else if (state == 0) {
-            Rlog.d(RILJ_LOG_TAG, "setWbAmr(): setting audio parameter - wb_amr=off");
-            mAudioManager.setParameters("wb_amr=off");
-        }
-    }
+    @Override
+     public void getRadioCapability(Message response) {
+         riljLog("getRadioCapability: returning static radio capability");
+         if (response != null) {
+             Object ret = makeStaticRadioCapability();
+             AsyncResult.forMessage(response, ret, null);
+             response.sendToTarget();
+         }
+     }
+     
+     @Override
+     public void setPreferredNetworkType(int networkType , Message response) {
+         riljLog("setPreferredNetworkType: " + networkType);
+ 
+         if (!setPreferredNetworkTypeSeen) {
+             riljLog("Need to reboot modem!");
+             setRadioPower(false, null);
+             setPreferredNetworkTypeSeen = true;
+         }
+ 
+         super.setPreferredNetworkType(networkType, response);
+     }
 }
