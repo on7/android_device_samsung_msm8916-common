@@ -1,8 +1,5 @@
 /*
- * Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
- * Not a contribution.
- *
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2014-2016 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +20,11 @@
 
 #include <errno.h>
 #include <math.h>
+#include <stdlib.h>
 #include <cutils/log.h>
 #include <cutils/str_parms.h>
 #include <sys/ioctl.h>
 #include <sound/voice_params.h>
-#include <stdlib.h>
 
 #include "audio_hw.h"
 #include "voice.h"
@@ -41,7 +38,6 @@
 #define AUDIO_PARAMETER_KEY_ALL_CALL_STATES     "all_call_states"
 #define AUDIO_PARAMETER_KEY_DEVICE_MUTE         "device_mute"
 #define AUDIO_PARAMETER_KEY_DIRECTION           "direction"
-#define AUDIO_PARAMETER_KEY_IN_CALL             "in_call"
 
 #define VOICE_EXTN_PARAMETER_VALUE_MAX_LEN 256
 
@@ -164,6 +160,7 @@ static int update_calls(struct audio_device *adev)
     audio_usecase_t usecase_id = 0;
     enum voice_lch_mode lch_mode;
     struct voice_session *session = NULL;
+    int fd = 0;
     int ret = 0;
 
     ALOGD("%s: enter:", __func__);
@@ -198,11 +195,11 @@ static int update_calls(struct audio_device *adev)
             case CALL_LOCAL_HOLD:
                 ALOGD("%s: LOCAL_HOLD -> ACTIVE vsid:%x", __func__, session->vsid);
                 lch_mode = VOICE_LCH_STOP;
-                ret = platform_update_lch(adev->platform, session, lch_mode);
-                if (ret < 0)
-                    ALOGE("%s: lch mode update failed, ret = %d", __func__, ret);
-                else
+                if (pcm_ioctl(session->pcm_tx, SNDRV_VOICE_IOCTL_LCH, &lch_mode) < 0) {
+                    ALOGE("LOCAL_HOLD -> ACTIVE failed");
+                } else {
                     session->state.current = session->state.new;
+                }
                 break;
 
             default:
@@ -246,11 +243,11 @@ static int update_calls(struct audio_device *adev)
             case CALL_LOCAL_HOLD:
                 ALOGD("%s: CALL_LOCAL_HOLD -> HOLD vsid:%x", __func__, session->vsid);
                 lch_mode = VOICE_LCH_STOP;
-                ret = platform_update_lch(adev->platform, session, lch_mode);
-                if (ret < 0)
-                    ALOGE("%s: lch mode update failed, ret = %d", __func__, ret);
-                else
+                if (pcm_ioctl(session->pcm_tx, SNDRV_VOICE_IOCTL_LCH, &lch_mode) < 0) {
+                    ALOGE("LOCAL_HOLD -> HOLD failed");
+                } else {
                     session->state.current = session->state.new;
+                }
                 break;
 
             default:
@@ -268,11 +265,11 @@ static int update_calls(struct audio_device *adev)
                 ALOGD("%s: ACTIVE/CALL_HOLD -> LOCAL_HOLD vsid:%x", __func__,
                       session->vsid);
                 lch_mode = VOICE_LCH_START;
-                ret = platform_update_lch(adev->platform, session, lch_mode);
-                if (ret < 0)
-                    ALOGE("%s: lch mode update failed, ret = %d", __func__, ret);
-                else
+                if (pcm_ioctl(session->pcm_tx, SNDRV_VOICE_IOCTL_LCH, &lch_mode) < 0) {
+                    ALOGE("LOCAL_HOLD -> HOLD failed");
+                } else {
                     session->state.current = session->state.new;
+                }
                 break;
 
             default:
@@ -457,6 +454,7 @@ int voice_extn_stop_call(struct audio_device *adev)
 int voice_extn_set_parameters(struct audio_device *adev,
                               struct str_parms *parms)
 {
+    char *str;
     int value;
     int ret = 0, err;
     char *kv_pairs = str_parms_to_str(parms);
@@ -517,15 +515,6 @@ int voice_extn_set_parameters(struct audio_device *adev,
         }
     }
 
-    err = str_parms_get_str(parms, AUDIO_PARAMETER_KEY_IN_CALL, str_value,
-                            sizeof(str_value));
-    if (err >= 0) {
-          str_parms_del(parms, AUDIO_PARAMETER_KEY_IN_CALL);
-           if (!strncmp("true", str_value, sizeof("true"))) {
-           adev->voice.is_in_call = true;
-        }
-    }
-
 done:
     ALOGV("%s: exit with code(%d)", __func__, ret);
     free(kv_pairs);
@@ -557,18 +546,9 @@ void voice_extn_get_parameters(const struct audio_device *adev,
     int ret;
     char value[VOICE_EXTN_PARAMETER_VALUE_MAX_LEN] = {0};
     char *str = str_parms_to_str(query);
-    int val = 0;
 
     ALOGV_IF(str != NULL, "%s: enter %s", __func__, str);
     free(str);
-
-    ret = str_parms_get_str(query, AUDIO_PARAMETER_KEY_IN_CALL, value,
-                            sizeof(value));
-    if (ret >=0) {
-        if (adev->voice.is_in_call)
-            val = 1;
-        str_parms_add_int(reply, AUDIO_PARAMETER_KEY_IN_CALL, val);
-    }
 
     ret = str_parms_get_str(query, AUDIO_PARAMETER_KEY_AUDIO_MODE, value,
                             sizeof(value));
@@ -586,25 +566,10 @@ void voice_extn_get_parameters(const struct audio_device *adev,
         }
         str_parms_add_str(reply, AUDIO_PARAMETER_KEY_ALL_CALL_STATES, value);
     }
-    voice_extn_compress_voip_get_parameters(query, reply);
 
     str = str_parms_to_str(reply);
     ALOGV_IF(str != NULL, "%s: exit: returns \"%s\"", __func__, str);
     free(str);
-}
-
-void voice_extn_out_get_parameters(struct stream_out *out,
-                                   struct str_parms *query,
-                                   struct str_parms *reply)
-{
-    voice_extn_compress_voip_out_get_parameters(out, query, reply);
-}
-
-void voice_extn_in_get_parameters(struct stream_in *in,
-                                  struct str_parms *query,
-                                  struct str_parms *reply)
-{
-    voice_extn_compress_voip_in_get_parameters(in, query, reply);
 }
 
 #ifdef INCALL_MUSIC_ENABLED

@@ -1,8 +1,5 @@
 /*
- * Copyright (c) 2013-2014, 2016 The Linux Foundation. All rights reserved.
- * Not a contribution.
- *
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +18,8 @@
 /*#define LOG_NDEBUG 0*/
 #define LOG_NDDEBUG 0
 
-#include <errno.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <math.h>
 #include <cutils/log.h>
 #include <cutils/str_parms.h>
@@ -32,7 +29,7 @@
 #include "voice_extn/voice_extn.h"
 #include "platform.h"
 #include "platform_api.h"
-#include "audio_extn.h"
+#include "audio_extn/tfa_98xx.h"
 
 struct pcm_config pcm_config_voice_call = {
     .channels = 1,
@@ -56,23 +53,80 @@ static struct voice_session *voice_get_session_from_use_case(struct audio_device
     return session;
 }
 
+static bool voice_is_sidetone_device(snd_device_t out_device,
+            char *mixer_path)
+{
+    bool is_sidetone_dev = true;
+
+    switch (out_device) {
+    case SND_DEVICE_OUT_VOICE_HAC_HANDSET:
+        strlcpy(mixer_path, "sidetone-hac-handset", MIXER_PATH_MAX_LENGTH);
+        break;
+    case SND_DEVICE_OUT_VOICE_HANDSET:
+        strlcpy(mixer_path, "sidetone-handset", MIXER_PATH_MAX_LENGTH);
+        break;
+    case SND_DEVICE_OUT_VOICE_HEADPHONES:
+        strlcpy(mixer_path, "sidetone-headphones", MIXER_PATH_MAX_LENGTH);
+        break;
+    default:
+        is_sidetone_dev = false;
+        break;
+    }
+
+    return is_sidetone_dev;
+}
+
+void voice_set_sidetone(struct audio_device *adev,
+        snd_device_t out_snd_device, bool enable)
+{
+    char mixer_path[MIXER_PATH_MAX_LENGTH];
+    bool is_sidetone_dev;
+
+    ALOGD("%s: %s, out_snd_device: %d\n",
+          __func__, (enable ? "enable" : "disable"),
+          out_snd_device);
+
+    is_sidetone_dev = voice_is_sidetone_device(out_snd_device, mixer_path);
+
+    if (!is_sidetone_dev) {
+        ALOGD("%s: device %d does not support sidetone\n",
+              __func__, out_snd_device);
+        return;
+    }
+
+    ALOGD("%s: sidetone out device = %s\n",
+          __func__, mixer_path);
+
+    if (enable)
+        audio_route_apply_and_update_path(adev->audio_route, mixer_path);
+    else
+        audio_route_reset_and_update_path(adev->audio_route, mixer_path);
+
+    return;
+}
+
 int voice_stop_usecase(struct audio_device *adev, audio_usecase_t usecase_id)
 {
-    int ret = 0;
+    int i, ret = 0;
     struct audio_usecase *uc_info;
     struct voice_session *session = NULL;
 
     ALOGD("%s: enter usecase:%s", __func__, use_case_table[usecase_id]);
 
     session = (struct voice_session *)voice_get_session_from_use_case(adev, usecase_id);
-    if (!session) {
-        ALOGE("stop_call: couldn't find voice session");
+
+    uc_info = get_usecase_from_list(adev, usecase_id);
+    if (uc_info == NULL) {
+        ALOGE("%s: Could not find the usecase (%d) in the list",
+              __func__, usecase_id);
         return -EINVAL;
     }
 
     session->state.current = CALL_INACTIVE;
-    if (adev->mode == AUDIO_MODE_NORMAL)
-        adev->voice.is_in_call = false;
+
+    /* Disable sidetone only when no calls are active */
+    if (!voice_is_call_state_active(adev))
+        voice_set_sidetone(adev, uc_info->out_snd_device, false);
 
     ret = platform_stop_voice_call(adev->platform, session->vsid);
 
@@ -86,19 +140,17 @@ int voice_stop_usecase(struct audio_device *adev, audio_usecase_t usecase_id)
         session->pcm_tx = NULL;
     }
 
-    uc_info = get_usecase_from_list(adev, usecase_id);
-    if (uc_info == NULL) {
-        ALOGE("%s: Could not find the usecase (%d) in the list",
-              __func__, usecase_id);
-        return -EINVAL;
-    }
-
     /* 2. Get and set stream specific mixer controls */
     disable_audio_route(adev, uc_info);
 
     /* 3. Disable the rx and tx devices */
     disable_snd_device(adev, uc_info->out_snd_device);
     disable_snd_device(adev, uc_info->in_snd_device);
+
+    if (audio_extn_tfa_98xx_is_supported() && voice_get_mic_mute(adev)) {
+        voice_set_mic_mute(adev, false);
+        ALOGD("%s: unMute voice Tx", __func__);
+    }
 
     list_remove(&uc_info->list);
     free(uc_info);
@@ -109,27 +161,16 @@ int voice_stop_usecase(struct audio_device *adev, audio_usecase_t usecase_id)
 
 int voice_start_usecase(struct audio_device *adev, audio_usecase_t usecase_id)
 {
-    int ret = 0;
+    int i, ret = 0;
     struct audio_usecase *uc_info;
     int pcm_dev_rx_id, pcm_dev_tx_id;
-    uint32_t sample_rate = 8000;
     struct voice_session *session = NULL;
     struct pcm_config voice_config = pcm_config_voice_call;
 
     ALOGD("%s: enter usecase:%s", __func__, use_case_table[usecase_id]);
 
     session = (struct voice_session *)voice_get_session_from_use_case(adev, usecase_id);
-    if (!session) {
-        ALOGE("start_call: couldn't find voice session");
-        return -EINVAL;
-    }
-
     uc_info = (struct audio_usecase *)calloc(1, sizeof(struct audio_usecase));
-    if (!uc_info) {
-        ALOGE("start_call: couldn't allocate mem for audio_usecase");
-        return -ENOMEM;
-    }
-
     uc_info->id = usecase_id;
     uc_info->type = VOICE_CALL;
     uc_info->stream.out = adev->current_call_output ;
@@ -150,13 +191,17 @@ int voice_start_usecase(struct audio_device *adev, audio_usecase_t usecase_id)
         ret = -EIO;
         goto error_start_voice;
     }
-    ret = platform_get_sample_rate(adev->platform, &sample_rate);
-    if (ret < 0) {
-        ALOGE("platform_get_sample_rate error %d\n", ret);
-    } else {
-        voice_config.rate = sample_rate;
+
+    ALOGV("%s: Opening PCM capture device card_id(%d) device_id(%d)",
+          __func__, adev->snd_card, pcm_dev_tx_id);
+    session->pcm_tx = pcm_open(adev->snd_card,
+                               pcm_dev_tx_id,
+                               PCM_IN, &voice_config);
+    if (session->pcm_tx && !pcm_is_ready(session->pcm_tx)) {
+        ALOGE("%s: %s", __func__, pcm_get_error(session->pcm_tx));
+        ret = -EIO;
+        goto error_start_voice;
     }
-    ALOGD("voice_config.rate %d\n", voice_config.rate);
 
     ALOGV("%s: Opening PCM playback device card_id(%d) device_id(%d)",
           __func__, adev->snd_card, pcm_dev_rx_id);
@@ -169,18 +214,14 @@ int voice_start_usecase(struct audio_device *adev, audio_usecase_t usecase_id)
         goto error_start_voice;
     }
 
-    ALOGV("%s: Opening PCM capture device card_id(%d) device_id(%d)",
-          __func__, adev->snd_card, pcm_dev_tx_id);
-    session->pcm_tx = pcm_open(adev->snd_card,
-                               pcm_dev_tx_id,
-                               PCM_IN, &voice_config);
-    if (session->pcm_tx && !pcm_is_ready(session->pcm_tx)) {
-        ALOGE("%s: %s", __func__, pcm_get_error(session->pcm_tx));
-        ret = -EIO;
-        goto error_start_voice;
-    }
-    pcm_start(session->pcm_rx);
     pcm_start(session->pcm_tx);
+    pcm_start(session->pcm_rx);
+
+    audio_extn_tfa_98xx_enable_speaker();
+
+    /* Enable sidetone only when no calls are already active */
+    if (!voice_is_call_state_active(adev))
+        voice_set_sidetone(adev, uc_info->out_snd_device, true);
 
     voice_set_volume(adev, adev->voice.volume);
 
@@ -249,32 +290,21 @@ int voice_check_and_set_incall_rec_usecase(struct audio_device *adev,
 {
     int ret = 0;
     uint32_t session_id;
+    int usecase_id;
     int rec_mode = INCALL_REC_NONE;
 
     if (voice_is_call_state_active(adev)) {
         switch (in->source) {
         case AUDIO_SOURCE_VOICE_UPLINK:
-            if (audio_extn_compr_cap_enabled() &&
-                audio_extn_compr_cap_format_supported(in->config.format)) {
-                in->usecase = USECASE_INCALL_REC_UPLINK_COMPRESS;
-            } else
-                in->usecase = USECASE_INCALL_REC_UPLINK;
+            in->usecase = USECASE_INCALL_REC_UPLINK;
             rec_mode = INCALL_REC_UPLINK;
             break;
         case AUDIO_SOURCE_VOICE_DOWNLINK:
-            if (audio_extn_compr_cap_enabled() &&
-                audio_extn_compr_cap_format_supported(in->config.format)) {
-                in->usecase = USECASE_INCALL_REC_DOWNLINK_COMPRESS;
-            } else
-                in->usecase = USECASE_INCALL_REC_DOWNLINK;
+            in->usecase = USECASE_INCALL_REC_DOWNLINK;
             rec_mode = INCALL_REC_DOWNLINK;
             break;
         case AUDIO_SOURCE_VOICE_CALL:
-            if (audio_extn_compr_cap_enabled() &&
-                audio_extn_compr_cap_format_supported(in->config.format)) {
-                in->usecase = USECASE_INCALL_REC_UPLINK_AND_DOWNLINK_COMPRESS;
-            } else
-                in->usecase = USECASE_INCALL_REC_UPLINK_AND_DOWNLINK;
+            in->usecase = USECASE_INCALL_REC_UPLINK_AND_DOWNLINK;
             rec_mode = INCALL_REC_UPLINK_AND_DOWNLINK;
             break;
         default:
@@ -328,10 +358,9 @@ int voice_set_mic_mute(struct audio_device *adev, bool state)
     int err = 0;
 
     adev->voice.mic_mute = state;
-    if (adev->mode == AUDIO_MODE_IN_CALL)
+    if (adev->mode == AUDIO_MODE_IN_CALL ||
+        adev->mode == AUDIO_MODE_IN_COMMUNICATION)
         err = platform_set_mic_mute(adev->platform, state);
-    if (adev->mode == AUDIO_MODE_IN_COMMUNICATION)
-        err = voice_extn_compress_voip_set_mic_mute(adev, state);
 
     return err;
 }
@@ -362,9 +391,6 @@ int voice_set_volume(struct audio_device *adev, float volume)
 
         err = platform_set_voice_volume(adev->platform, vol);
     }
-    if (adev->mode == AUDIO_MODE_IN_COMMUNICATION)
-        err = voice_extn_compress_voip_set_volume(adev, volume);
-
 
     return err;
 }
@@ -373,11 +399,14 @@ int voice_start_call(struct audio_device *adev)
 {
     int ret = 0;
 
+    adev->voice.in_call = true;
+
+    voice_set_mic_mute(adev, adev->voice.mic_mute);
+
     ret = voice_extn_start_call(adev);
     if (ret == -ENOSYS) {
         ret = voice_start_usecase(adev, USECASE_VOICE_CALL);
     }
-    adev->voice.in_call = true;
 
     return ret;
 }
@@ -404,7 +433,9 @@ void voice_get_parameters(struct audio_device *adev,
 
 int voice_set_parameters(struct audio_device *adev, struct str_parms *parms)
 {
+    char *str;
     char value[32];
+    int val;
     int ret = 0, err;
     char *kv_pairs = str_parms_to_str(parms);
 
@@ -412,18 +443,11 @@ int voice_set_parameters(struct audio_device *adev, struct str_parms *parms)
 
     ret = voice_extn_set_parameters(adev, parms);
     if (ret != 0) {
-        if (ret == -ENOSYS)
-            ret = 0;
-        else
+        if (ret == -ENOSYS) {
+            ret = 0; /* ignore error */
+        } else {
             goto done;
-    }
-
-    ret = voice_extn_compress_voip_set_parameters(adev, parms);
-    if (ret != 0) {
-        if (ret == -ENOSYS)
-            ret = 0;
-        else
-            goto done;
+        }
     }
 
     err = str_parms_get_str(parms, AUDIO_PARAMETER_KEY_TTY_MODE, value, sizeof(value));
@@ -451,6 +475,21 @@ int voice_set_parameters(struct audio_device *adev, struct str_parms *parms)
         }
     }
 
+    err = str_parms_get_str(parms, AUDIO_PARAMETER_KEY_HAC,
+                            value, sizeof(value));
+    if (err >= 0) {
+        bool hac = false;
+        str_parms_del(parms, AUDIO_PARAMETER_KEY_HAC);
+        if (strcmp(value, AUDIO_PARAMETER_VALUE_HAC_ON) == 0)
+            hac = true;
+
+        if (hac != adev->voice.hac) {
+            adev->voice.hac = hac;
+            if (voice_is_in_call(adev))
+                voice_update_devices_for_all_voice_usecases(adev);
+        }
+     }
+
     err = str_parms_get_str(parms, AUDIO_PARAMETER_KEY_INCALLMUSIC,
                             value, sizeof(value));
     if (err >= 0) {
@@ -459,7 +498,7 @@ int voice_set_parameters(struct audio_device *adev, struct str_parms *parms)
             platform_start_incall_music_usecase(adev->platform);
         else
             platform_stop_incall_music_usecase(adev->platform);
-    }
+     }
 
 done:
     ALOGV("%s: exit with code(%d)", __func__, ret);
@@ -473,6 +512,7 @@ void voice_init(struct audio_device *adev)
 
     memset(&adev->voice, 0, sizeof(adev->voice));
     adev->voice.tty_mode = TTY_MODE_OFF;
+    adev->voice.hac = false;
     adev->voice.volume = 1.0f;
     adev->voice.mic_mute = false;
     adev->voice.in_call = false;
@@ -499,6 +539,7 @@ void voice_update_devices_for_all_voice_usecases(struct audio_device *adev)
                   use_case_table[usecase->id]);
             usecase->stream.out = adev->current_call_output;
             select_devices(adev, usecase->id);
+            audio_extn_tfa_98xx_update();
         }
     }
 }

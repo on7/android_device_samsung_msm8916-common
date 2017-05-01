@@ -1,35 +1,22 @@
 /*
- * Copyright (c) 2013 - 2014, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2015 The Android Open Source Project
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above
- *     copyright notice, this list of conditions and the following
- *     disclaimer in the documentation and/or other materials provided
- *     with the distribution.
- *   * Neither the name of The Linux Foundation nor the names of its
- *     contributors may be used to endorse or promote products derived
- *     from this software without specific prior written permission.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS
- * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
- * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
- * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #define LOG_TAG "audio_hw_spkr_prot"
 /*#define LOG_NDEBUG 0*/
-#define LOG_NDDEBUG 0
+//#define LOG_NDDEBUG 0
 
 #include <errno.h>
 #include <math.h>
@@ -45,6 +32,8 @@
 #include <cutils/properties.h>
 #include "audio_extn.h"
 #include <linux/msm_audio_calibration.h>
+
+#define THERMAL_CLIENT_LIBRARY_PATH "libthermalclient.so"
 
 #ifdef SPKR_PROT_ENABLED
 
@@ -76,7 +65,8 @@
 
 /*If calibration is in progress wait for 200 msec before querying
   for status again*/
-#define WAIT_FOR_GET_CALIB_STATUS (200 * 1000)
+#define WAIT_FOR_GET_CALIB_STATUS (200)
+#define GET_SPKR_PROT_CAL_TIMEOUT_MSEC (5000)
 
 /*Speaker states*/
 #define SPKR_NOT_CALIBRATED -1
@@ -111,7 +101,7 @@ struct speaker_prot_session {
     int spkr_prot_t0;
     struct pcm *pcm_rx;
     struct pcm *pcm_tx;
-    int (*client_register_callback)
+    int (*thermal_client_register_callback)
     (char *client_name, int (*callback)(int), void *data);
     void (*thermal_client_unregister_callback)(int handle);
     int (*thermal_client_request)(char *client_name, int req_data);
@@ -141,7 +131,7 @@ static void spkr_prot_set_spkrstatus(bool enable)
        handle.spkr_in_use = true;
     else {
        handle.spkr_in_use = false;
-       clock_gettime(CLOCK_MONOTONIC, &handle.spkr_last_time_used);
+       clock_gettime(CLOCK_BOOTTIME, &handle.spkr_last_time_used);
    }
 }
 
@@ -153,7 +143,7 @@ void audio_extn_spkr_prot_calib_cancel(void *adev)
     threadid = pthread_self();
     ALOGV("%s: Entry", __func__);
     if (pthread_equal(handle.speaker_prot_threadid, threadid) || !adev) {
-        ALOGE("%s: Invalid params", __func__);
+        ALOGV("%s: Calibration not in progress.. nothihg to cancel", __func__);
         return;
     }
     uc_info = get_usecase_from_list(adev, USECASE_AUDIO_SPKR_CALIB_RX);
@@ -181,7 +171,7 @@ static bool is_speaker_in_use(unsigned long *sec)
         *sec = 0;
          return true;
      } else {
-         clock_gettime(CLOCK_MONOTONIC, &temp);
+         clock_gettime(CLOCK_BOOTTIME, &temp);
          *sec = temp.tv_sec - handle.spkr_last_time_used.tv_sec;
          return false;
      }
@@ -302,6 +292,7 @@ error:
      return -EINVAL;
 }
 
+// must be called with adev->lock acquired
 static int spkr_calibrate(int t0)
 {
     struct audio_device *adev = handle.adev_handle;
@@ -312,7 +303,7 @@ static int spkr_calibrate(int t0)
     struct audio_usecase *uc_info_rx = NULL, *uc_info_tx = NULL;
     int32_t pcm_dev_rx_id = -1, pcm_dev_tx_id = -1;
     struct timespec ts;
-    bool acquire_device = false;
+    int retry_duration;
 
     if (!adev) {
         ALOGE("%s: Invalid params", __func__);
@@ -416,20 +407,21 @@ static int spkr_calibrate(int t0)
     ts.tv_nsec = 0;
     pthread_mutex_lock(&handle.mutex_spkr_prot);
     pthread_mutex_unlock(&adev->lock);
-    acquire_device = true;
+
     (void)pthread_cond_timedwait(&handle.spkr_calib_cancel,
-        &handle.mutex_spkr_prot, &ts);
+                                 &handle.mutex_spkr_prot, &ts);
     ALOGD("%s: Speaker calibration done", __func__);
-    cleanup = true;
     pthread_mutex_lock(&handle.spkr_calib_cancelack_mutex);
     if (handle.cancel_spkr_calib) {
         status.status = -EAGAIN;
         goto exit;
     }
-    if (acdb_fd > 0) {
+
+    if (acdb_fd >= 0) {
         status.status = -EINVAL;
-        while (!get_spkr_prot_cal(acdb_fd, &status)) {
-            /*sleep for 200 ms to check for status check*/
+        retry_duration = 0;
+        while (!get_spkr_prot_cal(acdb_fd, &status) &&
+               retry_duration < GET_SPKR_PROT_CAL_TIMEOUT_MSEC) {
             if (!status.status) {
                 ALOGD("%s: spkr_prot_thread calib Success R0 %d %d",
                  __func__, status.r0[SP_V2_SPKR_1], status.r0[SP_V2_SPKR_2]);
@@ -460,69 +452,70 @@ static int spkr_calibrate(int t0)
                 break;
             } else if (status.status == -EAGAIN) {
                   ALOGD("%s: spkr_prot_thread try again", __func__);
-                  usleep(WAIT_FOR_GET_CALIB_STATUS);
+                  usleep(WAIT_FOR_GET_CALIB_STATUS * 1000);
+                  retry_duration += WAIT_FOR_GET_CALIB_STATUS;
             } else {
                 ALOGE("%s: spkr_prot_thread get failed status %d",
                 __func__, status.status);
                 break;
             }
         }
-exit:
-        if (handle.pcm_rx)
-            pcm_close(handle.pcm_rx);
-        handle.pcm_rx = NULL;
-        if (handle.pcm_tx)
-            pcm_close(handle.pcm_tx);
-        handle.pcm_tx = NULL;
-        /* Clear TX calibration to handset mic */
-        platform_send_audio_calibration(adev->platform,
-        SND_DEVICE_IN_HANDSET_MIC,
-        platform_get_default_app_type(adev->platform), 8000);
-        if (!status.status) {
-            protCfg.mode = MSM_SPKR_PROT_CALIBRATED;
-            protCfg.r0[SP_V2_SPKR_1] = status.r0[SP_V2_SPKR_1];
-            protCfg.r0[SP_V2_SPKR_2] = status.r0[SP_V2_SPKR_2];
-            if (set_spkr_prot_cal(acdb_fd, &protCfg))
-                ALOGE("%s: spkr_prot_thread disable calib mode", __func__);
-            else
-                handle.spkr_prot_mode = MSM_SPKR_PROT_CALIBRATED;
-        } else {
-            protCfg.mode = MSM_SPKR_PROT_NOT_CALIBRATED;
-            handle.spkr_prot_mode = MSM_SPKR_PROT_NOT_CALIBRATED;
-            if (set_spkr_prot_cal(acdb_fd, &protCfg))
-                ALOGE("%s: spkr_prot_thread disable calib mode failed", __func__);
-        }
-        if (acdb_fd > 0)
-            close(acdb_fd);
-
-        if (!handle.cancel_spkr_calib && cleanup) {
-            pthread_mutex_unlock(&handle.spkr_calib_cancelack_mutex);
-            pthread_cond_wait(&handle.spkr_calib_cancel,
-            &handle.mutex_spkr_prot);
-            pthread_mutex_lock(&handle.spkr_calib_cancelack_mutex);
-        }
-        if (disable_rx) {
-            list_remove(&uc_info_rx->list);
-            disable_snd_device(adev, SND_DEVICE_OUT_SPEAKER_PROTECTED);
-            disable_audio_route(adev, uc_info_rx);
-        }
-        if (disable_tx) {
-            list_remove(&uc_info_tx->list);
-            disable_snd_device(adev, SND_DEVICE_IN_CAPTURE_VI_FEEDBACK);
-            disable_audio_route(adev, uc_info_tx);
-        }
-        if (uc_info_rx) free(uc_info_rx);
-        if (uc_info_tx) free(uc_info_tx);
-        if (cleanup) {
-            if (handle.cancel_spkr_calib)
-                pthread_cond_signal(&handle.spkr_calibcancel_ack);
-            handle.cancel_spkr_calib = 0;
-            pthread_mutex_unlock(&handle.spkr_calib_cancelack_mutex);
-            pthread_mutex_unlock(&handle.mutex_spkr_prot);
-        }
     }
-    if (acquire_device)
+
+exit:
+    if (handle.pcm_rx)
+        pcm_close(handle.pcm_rx);
+    handle.pcm_rx = NULL;
+
+    if (handle.pcm_tx)
+        pcm_close(handle.pcm_tx);
+    handle.pcm_tx = NULL;
+
+    /* Clear TX calibration to handset mic */
+    platform_send_audio_calibration(adev->platform, SND_DEVICE_IN_HANDSET_MIC);
+    if (!status.status) {
+        protCfg.mode = MSM_SPKR_PROT_CALIBRATED;
+        protCfg.r0[SP_V2_SPKR_1] = status.r0[SP_V2_SPKR_1];
+        protCfg.r0[SP_V2_SPKR_2] = status.r0[SP_V2_SPKR_2];
+        if (set_spkr_prot_cal(acdb_fd, &protCfg))
+            ALOGE("%s: spkr_prot_thread disable calib mode", __func__);
+        else
+            handle.spkr_prot_mode = MSM_SPKR_PROT_CALIBRATED;
+    } else {
+        protCfg.mode = MSM_SPKR_PROT_NOT_CALIBRATED;
+        handle.spkr_prot_mode = MSM_SPKR_PROT_NOT_CALIBRATED;
+        if (set_spkr_prot_cal(acdb_fd, &protCfg))
+            ALOGE("%s: spkr_prot_thread disable calib mode failed", __func__);
+    }
+    if (acdb_fd >= 0)
+        close(acdb_fd);
+
+    if (!handle.cancel_spkr_calib && cleanup) {
+        pthread_mutex_unlock(&handle.spkr_calib_cancelack_mutex);
+        pthread_cond_wait(&handle.spkr_calib_cancel, &handle.mutex_spkr_prot);
+        pthread_mutex_lock(&handle.spkr_calib_cancelack_mutex);
+    }
+    if (disable_rx) {
+        list_remove(&uc_info_rx->list);
+        disable_snd_device(adev, SND_DEVICE_OUT_SPEAKER_PROTECTED);
+        disable_audio_route(adev, uc_info_rx);
+    }
+    if (disable_tx) {
+        list_remove(&uc_info_tx->list);
+        disable_snd_device(adev, SND_DEVICE_IN_CAPTURE_VI_FEEDBACK);
+        disable_audio_route(adev, uc_info_tx);
+    }
+    if (uc_info_rx) free(uc_info_rx);
+    if (uc_info_tx) free(uc_info_tx);
+    if (cleanup) {
+        if (handle.cancel_spkr_calib)
+            pthread_cond_signal(&handle.spkr_calibcancel_ack);
+        handle.cancel_spkr_calib = 0;
+        pthread_mutex_unlock(&handle.spkr_calib_cancelack_mutex);
+        pthread_mutex_unlock(&handle.mutex_spkr_prot);
         pthread_mutex_lock(&adev->lock);
+    }
+
     return status.status;
 }
 
@@ -549,7 +542,7 @@ static void* spkr_calibration_thread()
     handle.speaker_prot_threadid = pthread_self();
     ALOGD("spkr_prot_thread enable prot Entry");
     acdb_fd = open("/dev/msm_audio_cal",O_RDWR | O_NONBLOCK);
-    if (acdb_fd > 0) {
+    if (acdb_fd >= 0) {
         /*Set processing mode with t0/r0*/
         protCfg.mode = MSM_SPKR_PROT_NOT_CALIBRATED;
         if (set_spkr_prot_cal(acdb_fd, &protCfg)) {
@@ -719,29 +712,29 @@ void audio_extn_spkr_prot_init(void *adev)
     pthread_mutex_init(&handle.mutex_spkr_prot, NULL);
     pthread_mutex_init(&handle.spkr_calib_cancelack_mutex, NULL);
     pthread_mutex_init(&handle.spkr_prot_thermalsync_mutex, NULL);
-    handle.thermal_handle = dlopen("/vendor/lib/libthermalclient.so",
+    handle.thermal_handle = dlopen(THERMAL_CLIENT_LIBRARY_PATH,
             RTLD_NOW);
     if (!handle.thermal_handle) {
         ALOGE("%s: DLOPEN for thermal client failed", __func__);
     } else {
         /*Query callback function symbol*/
-        handle.client_register_callback =
+        handle.thermal_client_register_callback =
        (int (*)(char *, int (*)(int),void *))
         dlsym(handle.thermal_handle, "thermal_client_register_callback");
         handle.thermal_client_unregister_callback =
         (void (*)(int) )
         dlsym(handle.thermal_handle, "thermal_client_unregister_callback");
-        if (!handle.client_register_callback ||
+        if (!handle.thermal_client_register_callback ||
             !handle.thermal_client_unregister_callback) {
             ALOGE("%s: DLSYM thermal_client_register_callback failed", __func__);
         } else {
             /*Register callback function*/
             handle.thermal_client_handle =
-            handle.client_register_callback("spkr", thermal_client_callback, NULL);
+            handle.thermal_client_register_callback("spkr", thermal_client_callback, NULL);
             if (!handle.thermal_client_handle) {
-                ALOGE("%s: client_register_callback failed", __func__);
+                ALOGE("%s: thermal_client_register_callback failed", __func__);
             } else {
-                ALOGD("%s: spkr_prot client_register_callback success", __func__);
+                ALOGD("%s: spkr_prot thermal_client_register_callback success", __func__);
                 handle.thermal_client_request = (int (*)(char *, int))
                 dlsym(handle.thermal_handle, "thermal_client_request");
             }
@@ -767,7 +760,8 @@ void audio_extn_spkr_prot_init(void *adev)
         property_get("ro.board.platform", platform, "");
         if (!strncmp("apq8084", platform, sizeof("apq8084"))) {
             platform_set_snd_device_backend(SND_DEVICE_OUT_VOICE_SPEAKER,
-                                            "speaker-protected");
+                                            "speaker-protected",
+                                            "SLIMBUS_0_RX");
         }
     }
 }
@@ -812,7 +806,6 @@ int audio_extn_spkr_prot_start_processing(snd_device_t snd_device)
     int32_t pcm_dev_tx_id = -1, ret = 0;
 
     ALOGV("%s: Entry", __func__);
-    /* cancel speaker calibration */
     if (!adev) {
        ALOGE("%s: Invalid params", __func__);
        return -EINVAL;
@@ -861,10 +854,8 @@ int audio_extn_spkr_prot_start_processing(snd_device_t snd_device)
     }
 
 exit:
-   /* Clear VI feedback cal and replace with handset MIC  */
-   platform_send_audio_calibration(adev->platform,
-        SND_DEVICE_IN_HANDSET_MIC,
-        platform_get_default_app_type(adev->platform), 8000);
+    /* Clear VI feedback cal and replace with handset MIC  */
+    platform_send_audio_calibration(adev->platform, SND_DEVICE_IN_HANDSET_MIC);
     if (ret) {
         if (handle.pcm_tx)
             pcm_close(handle.pcm_tx);
