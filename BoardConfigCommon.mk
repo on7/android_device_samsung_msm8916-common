@@ -76,7 +76,6 @@ BOARD_HARDWARE_CLASS += \
     $(LOCAL_PATH)/cmhw
 
 # Audio
-BOARD_USES_ALSA_AUDIO := true
 USE_CUSTOM_AUDIO_POLICY := 1
 
 # Release Tools
