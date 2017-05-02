@@ -177,7 +177,7 @@ BOARD_HAS_NO_SELECT_BUTTON := true
 
 # Storage
 #RECOVERY_VARIANT := twrp
-TARGET_RECOVERY_FSTAB := device/samsung/msm8916-common/rootdir/etc/fstab.qcom
+TARGET_RECOVERY_FSTAB := device/samsung/msm8916-common/rootdir/fstab.qcom
 TW_INTERNAL_STORAGE_PATH := "/data/media"
 TW_INTERNAL_STORAGE_MOUNT_POINT := "data"
 TW_EXTERNAL_STORAGE_PATH := "/external_sd"
