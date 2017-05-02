@@ -1,5 +1,8 @@
 /*
- * Copyright (C) 2013-2016 The Android Open Source Project
+ * Copyright (c) 2013-2016, The Linux Foundation. All rights reserved.
+ * Not a contribution.
+ *
+ * Copyright (C) 2013 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,33 +20,30 @@
 #ifndef QCOM_AUDIO_HW_H
 #define QCOM_AUDIO_HW_H
 
-#include <cutils/str_parms.h>
 #include <cutils/list.h>
+#include <hardware/audio_amplifier.h>
 #include <hardware/audio.h>
-
 #include <tinyalsa/asoundlib.h>
 #include <tinycompress/tinycompress.h>
 
 #include <audio_route/audio_route.h>
+#include "audio_defs.h"
 #include "voice.h"
 
-// dlopen() does not go through default library path search if there is a "/" in the library name.
-#ifdef __LP64__
-#define VISUALIZER_LIBRARY_PATH "/system/lib64/soundfx/libqcomvisualizer.so"
-#define OFFLOAD_EFFECTS_BUNDLE_LIBRARY_PATH "/system/lib64/soundfx/libqcompostprocbundle.so"
-#else
 #define VISUALIZER_LIBRARY_PATH "/system/lib/soundfx/libqcomvisualizer.so"
 #define OFFLOAD_EFFECTS_BUNDLE_LIBRARY_PATH "/system/lib/soundfx/libqcompostprocbundle.so"
-#endif
-#define ADM_LIBRARY_PATH "libadm.so"
 
 /* Flags used to initialize acdb_settings variable that goes to ACDB library */
-#define DMIC_FLAG       0x00000002
-#define TTY_MODE_OFF    0x00000010
-#define TTY_MODE_FULL   0x00000020
-#define TTY_MODE_VCO    0x00000040
-#define TTY_MODE_HCO    0x00000080
-#define TTY_MODE_CLEAR  0xFFFFFF0F
+#define NONE_FLAG            0x00000000
+#define ANC_FLAG	     0x00000001
+#define DMIC_FLAG            0x00000002
+#define QMIC_FLAG            0x00000004
+#define TTY_MODE_OFF         0x00000010
+#define TTY_MODE_FULL        0x00000020
+#define TTY_MODE_VCO         0x00000040
+#define TTY_MODE_HCO         0x00000080
+#define TTY_MODE_CLEAR       0xFFFFFF0F
+#define FLUENCE_MODE_CLEAR   0xFFFFFFF0
 
 #define ACDB_DEV_TYPE_OUT 1
 #define ACDB_DEV_TYPE_IN 2
@@ -51,12 +51,9 @@
 #define MAX_SUPPORTED_CHANNEL_MASKS 2
 #define DEFAULT_HDMI_OUT_CHANNELS   2
 
-#define ERROR_LOG_ENTRIES 16
-
-typedef enum card_status_t {
-    CARD_STATUS_OFFLINE,
-    CARD_STATUS_ONLINE
-} card_status_t;
+#define SND_CARD_STATE_OFFLINE 0
+#define SND_CARD_STATE_ONLINE 1
+typedef int snd_device_t;
 
 /* These are the supported use cases by the hardware.
  * Each usecase is mapped to a specific PCM device.
@@ -69,8 +66,19 @@ enum {
     USECASE_AUDIO_PLAYBACK_LOW_LATENCY,
     USECASE_AUDIO_PLAYBACK_MULTI_CH,
     USECASE_AUDIO_PLAYBACK_OFFLOAD,
-    USECASE_AUDIO_PLAYBACK_TTS,
-    USECASE_AUDIO_PLAYBACK_ULL,
+#ifdef MULTIPLE_OFFLOAD_ENABLED
+    USECASE_AUDIO_PLAYBACK_OFFLOAD2,
+    USECASE_AUDIO_PLAYBACK_OFFLOAD3,
+    USECASE_AUDIO_PLAYBACK_OFFLOAD4,
+    USECASE_AUDIO_PLAYBACK_OFFLOAD5,
+    USECASE_AUDIO_PLAYBACK_OFFLOAD6,
+    USECASE_AUDIO_PLAYBACK_OFFLOAD7,
+    USECASE_AUDIO_PLAYBACK_OFFLOAD8,
+    USECASE_AUDIO_PLAYBACK_OFFLOAD9,
+#endif
+
+    /* FM usecase */
+    USECASE_AUDIO_PLAYBACK_FM,
 
     /* HFP Use case*/
     USECASE_AUDIO_HFP_SCO,
@@ -78,41 +86,37 @@ enum {
 
     /* Capture usecases */
     USECASE_AUDIO_RECORD,
+    USECASE_AUDIO_RECORD_COMPRESS,
     USECASE_AUDIO_RECORD_LOW_LATENCY,
+    USECASE_AUDIO_RECORD_FM_VIRTUAL,
 
-    /* Voice extension usecases
-     *
-     * Following usecase are specific to voice session names created by
-     * MODEM and APPS on 8992/8994/8084/8974 platforms.
-     */
-    USECASE_VOICE_CALL,  /* Usecase setup for voice session on first subscription for DSDS/DSDA */
-    USECASE_VOICE2_CALL, /* Usecase setup for voice session on second subscription for DSDS/DSDA */
-    USECASE_VOLTE_CALL,  /* Usecase setup for VoLTE session on first subscription */
-    USECASE_QCHAT_CALL,  /* Usecase setup for QCHAT session */
-    USECASE_VOWLAN_CALL, /* Usecase setup for VoWLAN session */
+    /* Voice usecase */
+    USECASE_VOICE_CALL,
 
-    /*
-     * Following usecase are specific to voice session names created by
-     * MODEM and APPS on 8996 platforms.
-     */
-
-    USECASE_VOICEMMODE1_CALL, /* Usecase setup for Voice/VoLTE/VoWLAN sessions on first
-                               * subscription for DSDS/DSDA
-                               */
-    USECASE_VOICEMMODE2_CALL, /* Usecase setup for voice/VoLTE/VoWLAN sessions on second
-                               * subscription for DSDS/DSDA
-                               */
+    /* Voice extension usecases */
+    USECASE_VOICE2_CALL,
+    USECASE_VOLTE_CALL,
+    USECASE_QCHAT_CALL,
+    USECASE_VOWLAN_CALL,
+    USECASE_VOICEMMODE1_CALL,
+    USECASE_VOICEMMODE2_CALL,
+    USECASE_COMPRESS_VOIP_CALL,
 
     USECASE_INCALL_REC_UPLINK,
     USECASE_INCALL_REC_DOWNLINK,
     USECASE_INCALL_REC_UPLINK_AND_DOWNLINK,
+    USECASE_INCALL_REC_UPLINK_COMPRESS,
+    USECASE_INCALL_REC_DOWNLINK_COMPRESS,
+    USECASE_INCALL_REC_UPLINK_AND_DOWNLINK_COMPRESS,
+
+    USECASE_INCALL_MUSIC_UPLINK,
+    USECASE_INCALL_MUSIC_UPLINK2,
 
     USECASE_AUDIO_SPKR_CALIB_RX,
     USECASE_AUDIO_SPKR_CALIB_TX,
 
     USECASE_AUDIO_PLAYBACK_AFE_PROXY,
     USECASE_AUDIO_RECORD_AFE_PROXY,
-    USECASE_AUDIO_DSM_FEEDBACK,
 
     AUDIO_USECASE_MAX
 };
@@ -135,7 +139,6 @@ enum {
     OFFLOAD_CMD_DRAIN,              /* send a full drain request to DSP */
     OFFLOAD_CMD_PARTIAL_DRAIN,      /* send a partial drain request to DSP */
     OFFLOAD_CMD_WAIT_FOR_BUFFER,    /* wait for buffer released by DSP */
-    OFFLOAD_CMD_ERROR,              /* offload playback hit some error */
 };
 
 enum {
@@ -150,22 +153,10 @@ struct offload_cmd {
     int data[];
 };
 
-enum {
-    ERROR_CODE_STANDBY,
-    ERROR_CODE_WRITE,
-};
-
-struct error_log_entry {
-    int32_t code;
-    int32_t count;
-    int64_t first_time;
-    int64_t last_time;
-};
-
-struct error_log {
-    uint32_t errors;
-    uint32_t idx;
-    struct error_log_entry entries[ERROR_LOG_ENTRIES];
+struct stream_app_type_cfg {
+    int sample_rate;
+    uint32_t bit_width;
+    int app_type;
 };
 
 struct stream_out {
@@ -190,6 +181,7 @@ struct stream_out {
     bool muted;
     uint64_t written; /* total frames written, not cleared when entering standby */
     audio_io_handle_t handle;
+    struct stream_app_type_cfg app_type_cfg;
 
     int non_blocking;
     int playback_started;
@@ -203,15 +195,9 @@ struct stream_out {
     void *offload_cookie;
     struct compr_gapless_mdata gapless_mdata;
     int send_new_metadata;
-    bool realtime;
-    int af_period_multiplier;
-    bool routing_change;
+    unsigned int bit_width;
+
     struct audio_device *dev;
-    card_status_t card_status;
-
-    struct error_log error_log;
-
-    int64_t last_write_time_us;
 };
 
 struct stream_in {
@@ -228,24 +214,18 @@ struct stream_in {
     audio_usecase_t usecase;
     bool enable_aec;
     bool enable_ns;
-    int64_t frames_read; /* total frames read, not cleared when entering standby */
-
-    audio_io_handle_t capture_handle;
-    audio_input_flags_t flags;
-    bool is_st_session;
-    bool is_st_session_active;
-    bool realtime;
-    int af_period_multiplier;
-    bool routing_change;
-    struct audio_device *dev;
     audio_format_t format;
-    card_status_t card_status;
+    audio_io_handle_t capture_handle;
+    bool is_st_session;
+
+    struct audio_device *dev;
 };
 
-typedef enum usecase_type_t {
+typedef enum {
     PCM_PLAYBACK,
     PCM_CAPTURE,
     VOICE_CALL,
+    VOIP_CALL,
     PCM_HFP_CALL
 } usecase_type_t;
 
@@ -264,25 +244,35 @@ struct audio_usecase {
     union stream_ptr stream;
 };
 
-typedef void* (*adm_init_t)();
-typedef void (*adm_deinit_t)(void *);
-typedef void (*adm_register_output_stream_t)(void *, audio_io_handle_t, audio_output_flags_t);
-typedef void (*adm_register_input_stream_t)(void *, audio_io_handle_t, audio_input_flags_t);
-typedef void (*adm_deregister_stream_t)(void *, audio_io_handle_t);
-typedef void (*adm_request_focus_t)(void *, audio_io_handle_t);
-typedef void (*adm_abandon_focus_t)(void *, audio_io_handle_t);
-typedef void (*adm_set_config_t)(void *, audio_io_handle_t,
-                                         struct pcm *,
-                                         struct pcm_config *);
-typedef void (*adm_request_focus_v2_t)(void *, audio_io_handle_t, long);
-typedef bool (*adm_is_noirq_avail_t)(void *, int, int, int);
-typedef void (*adm_on_routing_change_t)(void *, audio_io_handle_t);
+struct sound_card_status {
+    pthread_mutex_t lock;
+    int state;
+};
+
+struct stream_format {
+    struct listnode list;
+    audio_format_t format;
+};
+
+struct stream_sample_rate {
+    struct listnode list;
+    uint32_t sample_rate;
+};
+
+struct streams_output_cfg {
+    struct listnode list;
+    audio_output_flags_t flags;
+    struct listnode format_list;
+    struct listnode sample_rate_list;
+    struct stream_app_type_cfg app_type_cfg;
+};
 
 struct audio_device {
     struct audio_hw_device device;
     pthread_mutex_t lock; /* see note below on mutex acquisition order */
     struct mixer *mixer;
     audio_mode_t mode;
+    audio_devices_t out_device;
     struct stream_in *active_input;
     struct stream_out *primary_output;
     struct stream_out *voice_tx_output;
@@ -291,24 +281,28 @@ struct audio_device {
     bool screen_off;
     int *snd_dev_ref_cnt;
     struct listnode usecase_list;
+    struct listnode streams_output_cfg_list;
     struct audio_route *audio_route;
     int acdb_settings;
+    bool speaker_lr_swap;
     struct voice voice;
     unsigned int cur_hdmi_channels;
+    unsigned int cur_wfd_channels;
     bool bt_wb_speech_enabled;
-    bool mic_muted;
-    bool enable_voicerx;
-    bool enable_hfp;
 
     int snd_card;
+    unsigned int cur_codec_backend_samplerate;
+    unsigned int cur_codec_backend_bit_width;
     void *platform;
-    void *extspk;
-
-    card_status_t card_status;
-
+    unsigned int offload_usecases_state;
     void *visualizer_lib;
     int (*visualizer_start_output)(audio_io_handle_t, int);
     int (*visualizer_stop_output)(audio_io_handle_t, int);
+    void *offload_effects_lib;
+    int (*offload_effects_start_output)(audio_io_handle_t, int);
+    int (*offload_effects_stop_output)(audio_io_handle_t, int);
+
+    struct sound_card_status snd_card_status;
 
     /* The pcm_params use_case_table is loaded by adev_verify_devices() upon
      * calling adev_open().
@@ -317,37 +311,15 @@ struct audio_device {
      * or other capabilities are present for the device corresponding to that usecase.
      */
     struct pcm_params *use_case_table[AUDIO_USECASE_MAX];
-    void *offload_effects_lib;
-    int (*offload_effects_start_output)(audio_io_handle_t, int);
-    int (*offload_effects_stop_output)(audio_io_handle_t, int);
-
-    void *adm_data;
-    void *adm_lib;
-    adm_init_t adm_init;
-    adm_deinit_t adm_deinit;
-    adm_register_input_stream_t adm_register_input_stream;
-    adm_register_output_stream_t adm_register_output_stream;
-    adm_deregister_stream_t adm_deregister_stream;
-    adm_request_focus_t adm_request_focus;
-    adm_abandon_focus_t adm_abandon_focus;
-    adm_set_config_t adm_set_config;
-    adm_request_focus_v2_t adm_request_focus_v2;
-    adm_is_noirq_avail_t adm_is_noirq_avail;
-    adm_on_routing_change_t adm_on_routing_change;
-
-    /* logging */
-    snd_device_t last_logged_snd_device[AUDIO_USECASE_MAX][2]; /* [out, in] */
+    amplifier_device_t *amp;
 };
 
 int select_devices(struct audio_device *adev,
-                   audio_usecase_t uc_id);
-
+                          audio_usecase_t uc_id);
 int disable_audio_route(struct audio_device *adev,
                         struct audio_usecase *usecase);
-
 int disable_snd_device(struct audio_device *adev,
                        snd_device_t snd_device);
-
 int enable_snd_device(struct audio_device *adev,
                       snd_device_t snd_device);
 
@@ -355,7 +327,15 @@ int enable_audio_route(struct audio_device *adev,
                        struct audio_usecase *usecase);
 
 struct audio_usecase *get_usecase_from_list(struct audio_device *adev,
-                                            audio_usecase_t uc_id);
+                                                   audio_usecase_t uc_id);
+
+bool is_offload_usecase(audio_usecase_t uc_id);
+
+int pcm_ioctl(struct pcm *pcm, int request, ...);
+
+int get_snd_card_state(struct audio_device *adev);
+audio_usecase_t get_usecase_id_from_usecase_type(struct audio_device *adev,
+                                                 usecase_type_t type);
 
 #define LITERAL_TO_STRING(x) #x
 #define CHECK(condition) LOG_ALWAYS_FATAL_IF(!(condition), "%s",\
