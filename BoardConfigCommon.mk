@@ -53,7 +53,6 @@ BOARD_KERNEL_SEPARATED_DT    := true
 BOARD_CUSTOM_BOOTIMG_MK      := hardware/samsung/mkbootimg.mk
 BOARD_KERNEL_PAGESIZE        := 2048
 BOARD_FLASH_BLOCK_SIZE       := 131072
-BLOCK_BASED_OTA              := false
 
 # Bluetooth
 BOARD_HAVE_BLUETOOTH := true
