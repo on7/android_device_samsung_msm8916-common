@@ -239,6 +239,13 @@ on boot
     # Allow access for CCID command/response timeout configuration
     chown system system /sys/module/ccid_bridge/parameters/bulk_msg_timeout
 	
+    # NFC : Permissions for NFC
+    chmod 0660 /dev/sec-nfc
+    chown nfc nfc /dev/sec-nfc
+
+    chmod 0660 /dev/pn547
+    chown nfc nfc /dev/pn547
+	
 # reset_reason
     chown system system /proc/reset_reason
     chmod 0600 /proc/reset_reason
@@ -596,8 +603,8 @@ on post-fs-data
     chmod 2770 /data/system/perfd
 
     # NFC local data and nfcee xml storage
-    #mkdir /data/nfc 0770 nfc nfc
-    #mkdir /data/nfc/param 0770 nfc nfc
+    mkdir /data/nfc 0770 nfc nfc
+    mkdir /data/nfc/param 0770 nfc nfc
 
     # DCT(Display Clock Tunning)	- Interface 2.0
     chown radio system /sys/class/dct/dct_node/data
