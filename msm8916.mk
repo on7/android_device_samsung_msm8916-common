@@ -131,19 +131,20 @@ PRODUCT_PACKAGES += \
     ethertypes \
     libebtc
 
-# Configuration scripts
-PRODUCT_PACKAGES += \
-    init.qcom.bt.sh \
-    init.link_ril_db.sh
-
-# Ramdisk
-PRODUCT_PACKAGES += \
-    fstab.qcom \
-    init.qcom.rc \
-    init.qcom.usb.rc \
-    init.qcom.power.rc \
-    init.recovery.qcom.rc \
-    ueventd.qcom.rc
+# Init files
+PRODUCT_COPY_FILES += \
+	$(LOCAL_PATH)/rootdir/fstab.qcom:root/fstab.qcom \
+	$(LOCAL_PATH)/rootdir/init.qcom.rc:root/init.qcom.rc \
+	$(LOCAL_PATH)/rootdir/init.qcom.sh:root/init.qcom.sh \
+	$(LOCAL_PATH)/rootdir/init.qcom.usb.rc:root/init.qcom.usb.rc \
+	$(LOCAL_PATH)/rootdir/init.qcom.usb.sh:root/init.qcom.usb.sh \
+	$(LOCAL_PATH)/rootdir/init.qcom.class_core.sh:root/init.qcom.class_core.sh \
+	$(LOCAL_PATH)/rootdir/etc/init.qcom.fm.sh:system/etc/init.qcom.fm.sh \
+	$(LOCAL_PATH)/rootdir/etc/init.qcom.post_boot.sh:system/etc/init.qcom.post_boot.sh \
+	$(LOCAL_PATH)/rootdir/etc/init.qcom.bt.sh:system/etc/init.qcom.bt.sh \
+	$(LOCAL_PATH)/rootdir/etc/init.sec.boot.sh:system/etc/init.sec.boot.sh \
+	$(LOCAL_PATH)/rootdir/ueventd.qcom.rc:root/ueventd.qcom.rc \
+	$(LOCAL_PATH)/rootdir/init.link_ril_db.sh:root/init.link_ril_db.sh
 
 # Filesystem
 PRODUCT_PACKAGES += \
