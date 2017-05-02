@@ -167,9 +167,23 @@ PRODUCT_PACKAGES += \
 
 # Audio configuration
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/audio/configs/audio_effects.conf:system/vendor/etc/audio_effects.conf \
-    $(LOCAL_PATH)/audio/configs/audio_policy.conf:system/etc/audio_policy.conf \
-    $(LOCAL_PATH)/audio/configs/audio_platform_info.xml:system/etc/audio_platform_info.xml
+# Audio configuration file
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/audio/configs/audio_platform_info.xml:system/etc/audio_platform_info.xml \
+    hardware/qcom/audio-caf/msm8916/configs/msm8916_32/audio_policy.conf:system/etc/audio_policy.conf \
+    hardware/qcom/audio-caf/msm8916/configs/msm8916_32/audio_effects.conf:system/vendor/etc/audio_effects.conf \
+    hardware/qcom/audio-caf/msm8916/configs/msm8916_32/mixer_paths_mtp.xml:system/etc/mixer_paths_mtp.xml \
+    hardware/qcom/audio-caf/msm8916/configs/msm8916_32/mixer_paths_sbc.xml:system/etc/mixer_paths_sbc.xml \
+    hardware/qcom/audio-caf/msm8916/configs/msm8916_32/mixer_paths_qrd_skuh.xml:system/etc/mixer_paths_qrd_skuh.xml \
+    hardware/qcom/audio-caf/msm8916/configs/msm8916_32/mixer_paths_qrd_skui.xml:system/etc/mixer_paths_qrd_skui.xml \
+    hardware/qcom/audio-caf/msm8916/configs/msm8916_32/mixer_paths_qrd_skuhf.xml:system/etc/mixer_paths_qrd_skuhf.xml \
+    hardware/qcom/audio-caf/msm8916/configs/msm8916_32/mixer_paths_wcd9306.xml:system/etc/mixer_paths_wcd9306.xml \
+    hardware/qcom/audio-caf/msm8916/configs/msm8916_32/mixer_paths_skuk.xml:system/etc/mixer_paths_skuk.xml \
+    hardware/qcom/audio-caf/msm8916/configs/msm8916_32/mixer_paths_skul.xml:system/etc/mixer_paths_skul.xml \
+    hardware/qcom/audio-caf/msm8916/configs/msm8916_32/sound_trigger_mixer_paths.xml:system/etc/sound_trigger_mixer_paths.xml \
+    hardware/qcom/audio-caf/msm8916/configs/msm8916_32/sound_trigger_mixer_paths_wcd9306.xml:system/etc/sound_trigger_mixer_paths_wcd9306.xml \
+    hardware/qcom/audio-caf/msm8916/configs/msm8916_32/sound_trigger_platform_info.xml:system/etc/sound_trigger_platform_info.xml \
+    hardware/qcom/audio-caf/msm8916/configs/msm8916_32/mixer_paths_wcd9330.xml:system/etc/mixer_paths_wcd9330.xml
 
 # Media Profile
 PRODUCT_COPY_FILES += \
