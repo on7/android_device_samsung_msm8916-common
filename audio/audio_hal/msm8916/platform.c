@@ -2734,7 +2734,7 @@ int platform_set_parameters(void *platform, struct str_parms *parms)
     err = str_parms_get_str(parms, AUDIO_PARAMETER_KEY_VOLUME_BOOST,
                             value, sizeof(value));
     if (err >= 0) {
-		/* Throw away these crap codes */
+	/* Throw away these crap codes */
         /*
         str_parms_del(parms, AUDIO_PARAMETER_KEY_VOLUME_BOOST);
 		if (my_data->acdb_reload_vocvoltable == NULL) {
@@ -2748,8 +2748,8 @@ int platform_set_parameters(void *platform, struct str_parms *parms)
                 my_data->voice_feature_set = 0;
             }
         }
-		*/
-		/* Use our own */
+	*/
+	/* Use our own */
         if (strcmp(value, AUDIO_PARAMETER_VALUE_ON) == 0) {
             my_data->voice_feature_set = 1;
         } else {
@@ -2901,9 +2901,13 @@ void platform_get_parameters(void *platform,
     ret = str_parms_get_str(query, AUDIO_PARAMETER_KEY_VOLUME_BOOST,
                             value, sizeof(value));
     if (ret >= 0) {
-        str_parms_add_str(reply, AUDIO_PARAMETER_KEY_VOLUME_BOOST, value
-								? AUDIO_PARAMETER_VALUE_ON
-								: AUDIO_PARAMETER_VALUE_OFF);
+        if (my_data->voice_feature_set == VOICE_FEATURE_SET_VOLUME_BOOST) {
+            strlcpy(value, "on", sizeof(value));
+        } else {
+            strlcpy(value, "off", sizeof(value));
+        }
+
+        str_parms_add_str(reply, AUDIO_PARAMETER_KEY_VOLUME_BOOST, value);
     }
 
     ret = str_parms_get_str(query, AUDIO_PARAMETER_IS_HW_DECODER_SESSION_ALLOWED,
