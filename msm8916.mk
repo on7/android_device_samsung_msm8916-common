@@ -137,7 +137,7 @@ PRODUCT_COPY_FILES += \
 	$(LOCAL_PATH)/rootdir/etc/init.qcom.bt.sh:system/etc/init.qcom.bt.sh \
 	$(LOCAL_PATH)/rootdir/etc/init.sec.boot.sh:system/etc/init.sec.boot.sh \
 	$(LOCAL_PATH)/rootdir/ueventd.qcom.rc:root/ueventd.qcom.rc \
-	$(LOCAL_PATH)/rootdir/init.link_ril_db.sh:root/init.link_ril_db.sh
+	$(LOCAL_PATH)/rootdir/init.link_ril_db.sh:system/etc/init.link_ril_db.sh
 
 # Filesystem
 PRODUCT_PACKAGES += \
