@@ -8,7 +8,7 @@ allow rild mnt_user_file:dir search;
 allow rild storage_file:lnk_file read;
 allow rild system_app_data_file:file { read write getattr open lock };
 allow rild system_app_data_file:dir search;
-allow rild media_rw_data_file:file { execute getattr open read };
+allow rild media_rw_data_file:file { getattr open read };
 allow rild unlabeled:dir search;
 allow rild unlabeled:file { getattr open read };
 allow rild ctl_rildaemon_prop:property_service set;
