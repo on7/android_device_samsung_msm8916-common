@@ -242,7 +242,7 @@ PRODUCT_PACKAGES += \
     wpa_supplicant.conf
     
 #Rmnet
-PRODUCT_PROPERTY_OVERRIDES += \
+PRODUCT_PACKAGES += \
     rmnetcli \
     librmnetctl
 
