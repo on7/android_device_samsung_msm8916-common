@@ -17,10 +17,10 @@
 -include device/samsung/qcom-common/BoardConfigCommon.mk 
 
 # inherit from the proprietary version
--include vendor/samsung/fortunaxx-common/BoardConfigVendor.mk
+-include vendor/samsung/msm8916-common/BoardConfigVendor.mk
 
 # PATH
-LOCAL_PATH := device/samsung/fortunaxx-common
+LOCAL_PATH := device/samsung/msm8916-common
 
 # Platform
 TARGET_BOARD_PLATFORM           := msm8916
@@ -54,7 +54,7 @@ BOARD_RAMDISK_OFFSET               := 0x02000000
 BOARD_KERNEL_TAGS_OFFSET           := 0x01e00000
 BOARD_KERNEL_PAGESIZE              := 2048
 BOARD_KERNEL_SEPARATED_DT          := true
-TARGET_KERNEL_SOURCE               := kernel/samsung/fortunaxx
+TARGET_KERNEL_SOURCE               := kernel/samsung/msm8916
 
 # Partition sizes
 TARGET_USERIMAGES_USE_EXT4          := true
@@ -100,7 +100,7 @@ BOARD_HAVE_BLUETOOTH_QCOM                   := true
 BLUETOOTH_HCI_USE_MCT                       := true
 
 # Custom RIL class
-BOARD_RIL_CLASS                      := ../../../device/samsung/fortunaxx-common/ril/
+BOARD_RIL_CLASS                      := ../../../device/samsung/msm8916-common/ril/
 PROTOBUF_SUPPORTED                   := true
 
 # Fonts
@@ -186,7 +186,7 @@ PRODUCT_COPY_FILES                   := $(filter-out frameworks/av/media/libeffe
 include device/qcom/sepolicy/sepolicy.mk
 
 BOARD_SEPOLICY_DIRS += \
-   device/samsung/fortunaxx-common/sepolicy
+   device/samsung/msm8916-common/sepolicy
 
 BOARD_SEPOLICY_UNION += \
     bluetooth_loader.te \

@@ -1,11 +1,11 @@
 # Also get non-open-source specific aspects if available
-$(call inherit-product-if-exists, vendor/samsung/fortunaxx-common/fortunaxx-common-vendor.mk)
+$(call inherit-product-if-exists, vendor/samsung/msm8916-common/msm8916-common-vendor.mk)
 
 # Common overlay
 DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
 
 # System properties
--include device/samsung/fortunaxx-common/system_prop.mk
+-include device/samsung/msm8916-common/system_prop.mk
 
 # Permissions
 PRODUCT_COPY_FILES += \
@@ -74,6 +74,11 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/wifi/p2p_supplicant_overlay.conf:system/etc/wifi/p2p_supplicant_overlay.conf \
     $(LOCAL_PATH)/configs/wifi/wpa_supplicant_overlay.conf:system/etc/wifi/wpa_supplicant_overlay.conf
 
+# Ril
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/configs/data/dsi_config.xml:system/etc/data/dsi_config.xml
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/configs/data/netmgr_config.xml:system/etc/data/netmgr_config.xml
+PRODUCT_COPY_FILES += $(LOCAL_PATH)/configs/data/qmi_config.xml:system/etc/data/qmi_config.xml
+ 
 # Doze
 PRODUCT_PACKAGES += \
     SamsungDoze
